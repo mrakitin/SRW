@@ -25,6 +25,7 @@
 #include "srgsnbm.h"
 #include "srpersto.h"
 #include "srpowden.h"
+#include <sys/time.h>
 
 //-------------------------------------------------------------------------
 // Global Variables (used in SRW/SRWLIB, some may be obsolete)
@@ -645,17 +646,30 @@ EXP int CALL srwlSetRepresElecField(SRWLWfr* pWfr, char repr)
 
 EXP int CALL srwlPropagElecField(SRWLWfr* pWfr, SRWLOptC* pOpt)
 {
+
 	if((pWfr == 0) || (pOpt == 0)) return SRWL_INCORRECT_PARAM_FOR_WFR_PROP;
 	int locErNo = 0;
+
+	double start;
+	get_walltime (&start);
+
 	try 
 	{
 		srTCompositeOptElem optCont(*pOpt);
 		srTSRWRadStructAccessData wfr(pWfr);
+
+
 		if(locErNo = optCont.CheckRadStructForPropagation(&wfr)) return locErNo;
+
+		srwlPrintTime("srwlPropagElecField: CheckRadStructForPropagation",&start);
 
 		if(locErNo = optCont.PropagateRadiationGuided(wfr)) return locErNo;
 
+		srwlPrintTime("srwlPropagElecField: PropagateRadiationGuided",&start);
+
 		wfr.OutSRWRadPtrs(*pWfr);
+
+		srwlPrintTime("srwlPropagElecField: PropagateRadiationGuided",&start);
 
 		UtiWarnCheck();
 	}
@@ -953,4 +967,24 @@ EXP int CALL srwlPropagRadMultiE(SRWLStokes* pStokes, SRWLWfr* pWfr0, SRWLOptC* 
 	return 0;
 }
 
+
+void get_walltime_(double* wcTime) {
+  struct timeval tp;
+  gettimeofday(&tp, NULL);
+  *wcTime = (double)(tp.tv_sec + tp.tv_usec/1000000.0);
+}
+
+EXP void CALL get_walltime(double* wcTime) {
+  get_walltime_(wcTime);
+}
+
 //-------------------------------------------------------------------------
+EXP void CALL srwlPrintTime(char* str, double* start){
+	double end;
+	get_walltime (&end);
+	double dif= end-*start;
+	if (dif > 0.1)
+		printf ("Elapsed: %80s %5.2f s\n",str,dif);
+		fflush(stdout);
+	*start=end;
+}

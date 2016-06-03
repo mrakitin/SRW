@@ -24,6 +24,7 @@
 #include "sroptcryst.h"
 #include "auxparse.h"
 #include "srwlib.h"
+#include "stdio.h"
 
 //*************************************************************************
 
@@ -248,12 +249,18 @@ int srTCompositeOptElem::PropagateRadiationTest(srTSRWRadStructAccessData* pInRa
 
 int srTCompositeOptElem::PropagateRadiationGuided(srTSRWRadStructAccessData& wfr)
 {
+	double start,start1;
+	get_walltime(&start);
+	get_walltime(&start1);
+
 	int numElem = (int)GenOptElemList.size();
 	int numResizeInst = (int)GenOptElemPropResizeVect.size();
 	const double tolRes = 1.e-04;
 	int res = 0, elemCount = 0;
 	for(srTGenOptElemHndlList::iterator it = GenOptElemList.begin(); it != GenOptElemList.end(); ++it)
 	{
+		srwlPrintTime("PropagateRadiationGuided: start iteration",&start1);
+		srwlPrintTime("PropagateRadiationGuided: start iteration",&start);
 		int methNo = 0;
 		int useResizeBefore = 0;
 		int useResizeAfter = 0;
@@ -263,22 +270,26 @@ int srTCompositeOptElem::PropagateRadiationGuided(srTSRWRadStructAccessData& wfr
 
 		double vLxO=0, vLyO=0, vLzO=0; //Coordinates of the output Optical Axis vector
 		double vHxO=0, vHyO=0; //Default coordinates of the Horizontal Base vector of the output frame
-
+		srwlPrintTime("Iteration: set params",&start);
 		if(elemCount < numResizeInst)
 		{
 			srTRadResize &curPropResizeInst = GenOptElemPropResizeVect[elemCount];
 			useResizeBefore = curPropResizeInst.propAutoResizeBefore();
+			srwlPrintTime("Iteration: propAutoResizeBefore",&start);
 			useResizeAfter = curPropResizeInst.propAutoResizeAfter();
+			srwlPrintTime("Iteration: propAutoResizeAfter",&start);
 			if(useResizeBefore || useResizeAfter) methNo = 2;
 
 			precFact = curPropResizeInst.PropAutoPrec;
 			analTreatment = curPropResizeInst.propAllowUnderSamp();
+			srwlPrintTime("Iteration: propAllowUnderSamp",&start);
 
 			//TO IMPLEMENT: eventual shift of wavefront before resizing!!!
 
 			if((::fabs(curPropResizeInst.pxd - 1.) > tolRes) || (::fabs(curPropResizeInst.pxm - 1.) > tolRes) ||
 			   (::fabs(curPropResizeInst.pzd - 1.) > tolRes) || (::fabs(curPropResizeInst.pzm - 1.) > tolRes))
 				if(res = RadResizeGen(wfr, curPropResizeInst)) return res;
+			srwlPrintTime("Iteration: RadResizeGen",&start);
 
 			vLxO = curPropResizeInst.vLxOut; //OC021213
 			vLyO = curPropResizeInst.vLyOut;
@@ -288,18 +299,26 @@ int srTCompositeOptElem::PropagateRadiationGuided(srTSRWRadStructAccessData& wfr
 		}
 
 		srTParPrecWfrPropag precParWfrPropag(methNo, useResizeBefore, useResizeAfter, precFact, underSampThresh, analTreatment, (char)0, vLxO, vLyO, vLzO, vHxO, vHyO);
+		srwlPrintTime("Iteration: precParWfrPropag",&start);
 		srTRadResizeVect auxResizeVect;
 		if(res = ((srTGenOptElem*)(it->rep))->PropagateRadiation(&wfr, precParWfrPropag, auxResizeVect)) return res;
+		srwlPrintTime("Iteration: PropagateRadiation",&start);
 
 		//maybe to use "PropagateRadiationGuided" for srTCompositeOptElem?
 
 		elemCount++;
+		char str[256];
+		sprintf(str,"%s %d","PropagateRadiationGuided: Iteration :",elemCount);
+		srwlPrintTime(str,&start1);
+
 	}
 	if(elemCount < numResizeInst)
 	{//post-resize
 		//TO IMPLEMENT: eventual shift of wavefront before resizing!!!
 
 		srTRadResize &postResize = GenOptElemPropResizeVect[elemCount];
+		srwlPrintTime("PropagateRadiationGuided: GenOptElemPropResizeVect",&start);
+
 		if((::fabs(postResize.pxd - 1.) > tolRes) || (::fabs(postResize.pxm - 1.) > tolRes) ||
 		   (::fabs(postResize.pzd - 1.) > tolRes) || (::fabs(postResize.pzm - 1.) > tolRes))
 			if(res = RadResizeGen(wfr, postResize)) return res;

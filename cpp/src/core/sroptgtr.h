@@ -16,6 +16,9 @@
 
 #include "sroptfoc.h"
 
+
+#include <stdio.h>
+
 struct SRWLStructOpticsTransmission;
 typedef struct SRWLStructOpticsTransmission SRWLOptT;
 
@@ -75,6 +78,8 @@ public:
 	//int PropagateRadiation(srTSRWRadStructAccessData* pRadAccessData, int MethNo, srTRadResizeVect& ResBeforeAndAfterArr)
 	int PropagateRadiation(srTSRWRadStructAccessData* pRadAccessData, srTParPrecWfrPropag& ParPrecWfrPropag, srTRadResizeVect& ResBeforeAndAfterArr)
 	{
+		printf("::::PropagateRadiation -> Transmission\n");
+
 		//if(ParPrecWfrPropag.AnalTreatment == 1)
 		//{// Treating linear terms analytically
 			pRadAccessData->CheckAndSubtractPhaseTermsLin(TransvCenPoint.x, TransvCenPoint.y);

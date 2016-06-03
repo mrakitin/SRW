@@ -15,6 +15,10 @@
 #include "srsysuti.h"
 #include "srmlttsk.h"
 #include "srerror.h"
+#include "srwlib.h"
+
+#include "stdio.h"
+
 
 extern srTYield srYield;
 
@@ -34,6 +38,9 @@ int srTGenOptElem::PropagateRadiationMeth_0(srTSRWRadStructAccessData* pRadAcces
  //However, it may allow for changing wavefront step size and range (keeping numbers of points constant)
  //in the "slices".
  //It is virtual ("standard" processing). Known re-definitions: in srTDriftSpace
+	double start;
+
+	get_walltime (&start);
 
 	srTSRWRadStructAccessData *pRadDataSingleE = 0, *pPrevRadDataSingleE = 0;
 	
@@ -48,10 +55,15 @@ int srTGenOptElem::PropagateRadiationMeth_0(srTSRWRadStructAccessData* pRadAcces
 		//allocates new pRadDataSingleE !
 	}
 
+	srwlPrintTime(":PropagateRadiationMeth_0 : SetupNewRadStructFromSliceConstE",&start);
+
+
 	if(!m_PropWfrInPlace)
 	{
 		if(result = SetupNewRadStructFromSliceConstE(pRadAccessData, -1, pPrevRadDataSingleE)) return result;
 	}
+
+	srwlPrintTime(":PropagateRadiationMeth_0 : pPrevRadDataSingleE",&start);
 
 	//separate processing of wavefront radius is necessary
 	double origRobsX = pRadAccessData->RobsX, origRobsXAbsErr = pRadAccessData->RobsXAbsErr;
@@ -115,6 +127,10 @@ int srTGenOptElem::PropagateRadiationMeth_0(srTSRWRadStructAccessData* pRadAcces
 		}
 	}
 
+	char str[256];
+	sprintf(str,"%s %d",":PropagateRadiationMeth_0 : PropagateRadiationSingleE_Meth_0 - cycles:",neOrig)	;
+	srwlPrintTime(str,&start);
+
 	if((pRadAccessData->RobsX != 0) && (pRadAccessData->RobsXAbsErr == 0)) pRadAccessData->RobsXAbsErr = ::fabs(0.1*pRadAccessData->RobsX);
 	if((pRadAccessData->RobsZ != 0) && (pRadAccessData->RobsZAbsErr == 0)) pRadAccessData->RobsZAbsErr = ::fabs(0.1*pRadAccessData->RobsZ);
 
@@ -122,6 +138,8 @@ int srTGenOptElem::PropagateRadiationMeth_0(srTSRWRadStructAccessData* pRadAcces
 	{//to test!
 		if(result = ReInterpolateWfrDataOnNewTransvMesh(vRadSlices, pRadDataSingleE, pRadAccessData)) return result;
 	}
+
+	srwlPrintTime(": PropagateRadiationMeth_0 : int ie=0; ie<neOrig",&start);
 
 	if((pRadDataSingleE != 0) && (pRadDataSingleE != pRadAccessData)) delete pRadDataSingleE;
 	if((pPrevRadDataSingleE != 0) && (pPrevRadDataSingleE != pRadAccessData)) delete pPrevRadDataSingleE;

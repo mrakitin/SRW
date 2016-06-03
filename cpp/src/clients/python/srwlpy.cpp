@@ -24,6 +24,8 @@
 #include <vector>
 #include <map>
 #include <sstream> //OCTEST_161214
+#include <time.h>
+
 using namespace std;
 
 //Without the following Python.h will enforce usage of python**_d.lib in dbug mode, which may not be always existing
@@ -3950,11 +3952,27 @@ static PyObject* srwlpy_PropagElecField(PyObject *self, PyObject *args)
 		if(!PyArg_ParseTuple(args, "OO:PropagElecField", &oWfr, &oOptCnt)) throw strEr_BadArg_PropagElecField;
 		if((oWfr == 0) || (oOptCnt == 0)) throw strEr_BadArg_PropagElecField;
 
+		double start;
+		get_walltime(&start);
+
 		ParseSructSRWLWfr(&wfr, oWfr, &vBuf, gmWfrPyPtr);
+
+		srwlPrintTime(":srwlpy_PropagElecField : ParseSructSRWLWfr", &start);
+
+
 		ParseSructSRWLOptC(&optCnt, oOptCnt, &vBuf);
 
+		srwlPrintTime(":srwlpy_PropagElecField :ParseSructSRWLOptC", &start);
+
 		ProcRes(srwlPropagElecField(&wfr, &optCnt));
+
+		srwlPrintTime(":srwlpy_PropagElecField :srwlPropagElecField", &start);
+
 		UpdatePyWfr(oWfr, &wfr);
+
+		srwlPrintTime(":srwlpy_PropagElecField :UpdatePyWfr", &start);
+
+
 	}
 	catch(const char* erText) 
 	{

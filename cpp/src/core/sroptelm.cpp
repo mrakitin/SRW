@@ -1064,6 +1064,10 @@ int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char 
 {// 0- to coord.; 1- to ang.
 	int result;
 
+	double start;
+	get_walltime (&start);
+
+
 	char WfrEdgeCorrShouldBeTreated = pRadAccessData->WfrEdgeCorrShouldBeDone; // Turn on/off here
 
 	if(pRadAccessData->Pres == CoordOrAng) return 0;
@@ -1143,6 +1147,9 @@ int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char 
 		float* AuxEz = new float[TwoNxNz];
 		if(AuxEz == 0) return MEMORY_ALLOCATION_FAILURE;
 
+		srwlPrintTime("SetRadRepres : setup",&start);
+
+
 		for(long ie = 0; ie < pRadAccessData->ne; ie++)
 		{
 			if(result = ExtractRadSliceConstE(pRadAccessData, ie, AuxEx, AuxEz)) return result;
@@ -1184,6 +1191,11 @@ int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char 
 		if(AuxEz != 0) delete[] AuxEz;
 		//}
 	}
+
+	char str[256];
+	sprintf(str,"%s %d","::SetRadRepres : cycles:",pRadAccessData->ne);
+	srwlPrintTime(str,&start);
+
 
 	pRadAccessData->xStep = FFT2DInfo.xStepTr;
 	pRadAccessData->zStep = FFT2DInfo.yStepTr;
@@ -1278,6 +1290,8 @@ int srTGenOptElem::SetRadRepres1D(srTRadSect1D* pRadSect1D, char CoordOrAng)
 int srTGenOptElem::ComputeRadMoments(srTSRWRadStructAccessData* pSRWRadStructAccessData)
 {// Here Lengths are in m and Phot energy in eV!
  // This function seems to work correctly only in Frequency-Coordinate representation
+	double start;
+	get_walltime (&start);
 
 	if((pSRWRadStructAccessData->nx <= 1) && (pSRWRadStructAccessData->nz <= 1)) return 0; //OC090112 or return error?
 
@@ -1308,6 +1322,7 @@ int srTGenOptElem::ComputeRadMoments(srTSRWRadStructAccessData* pSRWRadStructAcc
 		TreatStronglyOscillatingTerm(*pSRWRadStructAccessData, 'r');
 		WaveFrontTermWasTreated = 1;
 	}
+	srwlPrintTime(":ComputeRadMoments : TreatStronglyOscillatingTerm 1",&start);
 
 	double SumsX[22], SumsZ[22], ff[22];
 
@@ -1336,6 +1351,9 @@ int srTGenOptElem::ComputeRadMoments(srTSRWRadStructAccessData* pSRWRadStructAcc
 	char ActualScanX = (pSRWRadStructAccessData->nx > 1);
 	char ActualScanZ = (pSRWRadStructAccessData->nz > 1);
 	char ActualScansXZ = (ActualScanX && ActualScanZ);
+
+	srwlPrintTime(":ComputeRadMoments : setup",&start);
+
 
 	for(int ie=0; ie<pSRWRadStructAccessData->ne; ie++)
 	{
@@ -1708,7 +1726,14 @@ int srTGenOptElem::ComputeRadMoments(srTSRWRadStructAccessData* pSRWRadStructAcc
 		fpMomX += AmOfMom; fpMomZ += AmOfMom;
 	}
 
+	char str[256];
+	sprintf(str,"%s %d",":ComputeRadMoments : cycles:",pSRWRadStructAccessData->ne);
+	srwlPrintTime(str,&start);
+
+
 	if(WaveFrontTermWasTreated) TreatStronglyOscillatingTerm(*pSRWRadStructAccessData, 'a');
+	srwlPrintTime(":ComputeRadMoments : TreatStronglyOscillatingTerm 2",&start);
+
 	pSRWRadStructAccessData->MomWereCalcNum = true;
 	return 0;
 }
@@ -1864,6 +1889,9 @@ void srTGenOptElem::FindMinMaxRatio(double* Arr1, double* Arr2, int n, double& M
 
 int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessData, srTRadResize& RadResizeStruct)
 {
+	double start;
+	get_walltime(&start);
+
 	if((RadResizeStruct.pxm == 1.) && (RadResizeStruct.pxd == 1.) && (RadResizeStruct.pzm == 1.) && (RadResizeStruct.pzd == 1.)) return 0;
 	int result = 0;
 
@@ -1919,6 +1947,9 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 	long NewNx = SRWRadStructAccessData.nx; 
 	long NewNz = SRWRadStructAccessData.nz; 
 
+	srwlPrintTime("RadResizeGen: set parameters",&start);
+
+
 	CGenMathFFT2D FFT;
 	char RadShouldBeChanged = ((pxTot != 1.) || (pzTot != 1.));
 	if(RadShouldBeChanged)
@@ -1937,6 +1968,7 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 		NewSRWRadStructAccessData.nx = NewNx;
 		NewSRWRadStructAccessData.nz = NewNz;
 	}
+	srwlPrintTime("RadResizeGen: if RadShouldBeChanged",&start);
 
 	char CenterIsOffset = 0;
 	long iXc = (SRWRadStructAccessData.nx >> 1);
@@ -2089,6 +2121,8 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 		}
 	}
 
+	srwlPrintTime("RadResizeGen: CenterIsOffset",&start);
+
 	long TotAmOfOldData = (SRWRadStructAccessData.ne*SRWRadStructAccessData.nx*SRWRadStructAccessData.nz) << 1;
 	long TotAmOfNewData = (NewSRWRadStructAccessData.ne*NewSRWRadStructAccessData.nx*NewSRWRadStructAccessData.nz) << 1;
 
@@ -2103,6 +2137,8 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 		double SecurityMemResizeCoef = 0.95; //to tune
 		TreatPolarizSepar = (ExtraMemSize > SecurityMemResizeCoef*MemoryAvail)? 1 : 0;
 	}
+
+	srwlPrintTime("RadResizeGen: TreatPolarizSepar memory",&start);
 
 	float *OldRadXCopy = 0, *OldRadZCopy = 0;
 	if(!TreatPolarizSepar)
@@ -2123,16 +2159,23 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 				*(tOldRadXCopy++) = *(tBaseRadX++);
 				*(tOldRadZCopy++) = *(tBaseRadZ++);
 			}
-			
+			srwlPrintTime("RadResizeGen: memalloc",&start);
+
+
 			if(RadShouldBeChanged)
 			{
 				if(NewSRWRadStructAccessData.BaseRadWasEmulated) 
 				{
 					if(result = NewSRWRadStructAccessData.ReAllocBaseRadAccordingToNeNxNz()) return result;
+					srwlPrintTime("RadResizeGen: TreatPolarizSepar-ReAllocBaseRadAccordingToNeNxNz",&start);
 				}
 				//else if(result = Send.ModifyRadNeNxNz(NewSRWRadStructAccessData)) return result;
 				else if(result = NewSRWRadStructAccessData.ModifyWfrNeNxNz()) return result;
+				srwlPrintTime("RadResizeGen: ModifyWfrNeNxNz",&start);
+
 			}
+			srwlPrintTime("RadResizeGen: RadShouldBeChanged",&start);
+
 			
 			tBaseRadX = NewSRWRadStructAccessData.pBaseRadX;
 			tBaseRadZ = NewSRWRadStructAccessData.pBaseRadZ;
@@ -2148,6 +2191,8 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 			
 			if(OldRadXCopy != 0) delete[] OldRadXCopy;
 			if(OldRadZCopy != 0) delete[] OldRadZCopy;
+
+			srwlPrintTime("RadResizeGen: RadResizeCore",&start);
 		}
 		else
 		{
@@ -2156,6 +2201,8 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 			if(NewSRWRadStructAccessData.BaseRadWasEmulated) 
 			{
 				if(result = NewSRWRadStructAccessData.AllocBaseRadAccordingToNeNxNz()) return result;
+				srwlPrintTime("RadResizeGen: AllocBaseRadAccordingToNeNxNz",&start);
+
 			}
 			else
 			{
@@ -2177,6 +2224,7 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 #endif
 #if defined(SRWLIB_STATIC) || defined(SRWLIB_SHARED) //OC161115
 				if(result = NewSRWRadStructAccessData.ModifyWfrNeNxNz(0, true)) return result;
+				srwlPrintTime("RadResizeGen: TreatPolarizSepar-NewSRWRadStructAccessData",&start);
 				//OCTEST
 				//SRWRadStructAccessData.pBaseRadX = NewSRWRadStructAccessData.pBaseRadXaux;
 				//SRWRadStructAccessData.pBaseRadZ = NewSRWRadStructAccessData.pBaseRadZaux;
@@ -2189,7 +2237,13 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 				*(tRadX++) = 0.; *(tRadZ++) = 0.; 
 			}
 
+			srwlPrintTime("RadResizeGen: TreatPolarizSepar-PrepareStructs",&start);
+
+
 			if(result = RadResizeCore(SRWRadStructAccessData, NewSRWRadStructAccessData, RadResizeStruct)) return result;
+
+			srwlPrintTime("RadResizeGen: RadResizeCore",&start);
+
 
 			if(NewSRWRadStructAccessData.BaseRadWasEmulated) 
 			{
@@ -2247,6 +2301,8 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 				if(result = RadResizeCore(SRWRadStructAccessData, NewSRWRadStructAccessData, RadResizeStruct, 'x')) return result;
 				if(OldRadXCopy != 0) delete[] OldRadXCopy;
 			}
+			srwlPrintTime("RadResizeGen: TreatPolarizSepar-ExIsOK1",&start);
+
 			if(EzIsOK)
 			{
 				OldRadZCopy = new float[TotAmOfOldData];
@@ -2278,6 +2334,7 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 				if(result = RadResizeCore(SRWRadStructAccessData, NewSRWRadStructAccessData, RadResizeStruct, 'z')) return result;
 				if(OldRadZCopy != 0) delete[] OldRadZCopy;
 			}
+			srwlPrintTime("RadResizeGen: TreatPolarizSepar-EzIsOK1",&start);
 		}
 		else
 		{
@@ -2321,6 +2378,8 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 				if (result = NewSRWRadStructAccessData.DeleteWfrBackupData('x')) return result;
 #endif
 			}
+			srwlPrintTime("RadResizeGen: TreatPolarizSepar-ExIsOK2",&start);
+
 //Ez
 			if(EzIsOK)
 			{
@@ -2352,7 +2411,11 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 			if(result = NewSRWRadStructAccessData.RenameWfrStruct(OldRadStructNames)) return result;
 #endif
 		}
+		srwlPrintTime("RadResizeGen: TreatPolarizSepar-EzIsOK2",&start);
+
 	}
+
+	srwlPrintTime("RadResizeGen: TreatPolarizSepar",&start);
 
 	SRWRadStructAccessData = NewSRWRadStructAccessData;
 	NewSRWRadStructAccessData.ZeroPtrs();
@@ -2379,6 +2442,9 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 		RadResizeStruct.pzm = pzmNew; RadResizeStruct.pzd = pzdNew;
 	}
 
+	srwlPrintTime("RadResizeGen: useOtherSideFFT",&start);
+
+
 	return 0;
 }
 
@@ -2386,11 +2452,17 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 
 int srTGenOptElem::RadResizeCore(srTSRWRadStructAccessData& OldRadAccessData, srTSRWRadStructAccessData& NewRadAccessData, srTRadResize& RadResizeStruct, char PolComp)
 {
+
+	double start;
+	get_walltime(&start);
+
 	const double RelStepTol = 1.e-05; // To steer
 	char OnlyMakeLargerRange = ((RadResizeStruct.pxd == 1.) && (RadResizeStruct.pzd == 1.) && (RadResizeStruct.pxm >= 1.) && (RadResizeStruct.pzm >= 1.)) 
 							&& ((::fabs(OldRadAccessData.xStep - NewRadAccessData.xStep) < RelStepTol) && (::fabs(OldRadAccessData.zStep - NewRadAccessData.zStep) < RelStepTol));
 
 	if(OnlyMakeLargerRange) return RadResizeCore_OnlyLargerRange(OldRadAccessData, NewRadAccessData, RadResizeStruct, PolComp);
+	srwlPrintTime("RadResizeCore: RadResizeCore_OnlyLargerRange",&start);
+
 
 	char TreatPolCompX = ((PolComp == 0) || (PolComp == 'x'));
 	char TreatPolCompZ = ((PolComp == 0) || (PolComp == 'z'));
@@ -2406,19 +2478,29 @@ int srTGenOptElem::RadResizeCore(srTSRWRadStructAccessData& OldRadAccessData, sr
 	bool OrigWfrQuadTermCanBeTreatedAtResizeX = OldRadAccessData.WfrQuadTermCanBeTreatedAtResizeX;
 	bool OrigWfrQuadTermCanBeTreatedAtResizeZ = OldRadAccessData.WfrQuadTermCanBeTreatedAtResizeZ;
 
+	srwlPrintTime("RadResizeCore: init variables 1",&start);
+
+
 	//if((!RadResizeStruct.DoNotTreatSpherTerm) && WaveFrontTermCanBeTreated(OldRadAccessData))
 	if((!RadResizeStruct.doNotTreatSpherTerm()) && WaveFrontTermCanBeTreated(OldRadAccessData)) //OC090311
 	{
+		srwlPrintTime("RadResizeCore: doNotTreatSpherTerm+WaveFrontTermCanBeTreated",&start);
+
 		NewRadAccessData.WfrQuadTermCanBeTreatedAtResizeX = OldRadAccessData.WfrQuadTermCanBeTreatedAtResizeX;
 		NewRadAccessData.WfrQuadTermCanBeTreatedAtResizeZ = OldRadAccessData.WfrQuadTermCanBeTreatedAtResizeZ;
 
 		TreatStronglyOscillatingTerm(OldRadAccessData, 'r', PolComp);
+
+		srwlPrintTime("RadResizeCore: TreatStronglyOscillatingTerm 1",&start);
+
 
 		NewRadAccessData.wfrReffX = OldRadAccessData.wfrReffX;
 		NewRadAccessData.wfrReffZ = OldRadAccessData.wfrReffZ;
 
 		WaveFrontTermWasTreated = 1;
 	}
+
+
 
 	double xStepInvOld = 1./OldRadAccessData.xStep;
 	double zStepInvOld = 1./OldRadAccessData.zStep;
@@ -2445,6 +2527,9 @@ int srTGenOptElem::RadResizeCore(srTSRWRadStructAccessData& OldRadAccessData, sr
 
 	float BufF[4], BufFI[2];
 	char UseLowOrderInterp_PolCompX, UseLowOrderInterp_PolCompZ;
+
+	srwlPrintTime("RadResizeCore: init variables",&start);
+
 
 	int result = 0;
 	for(int ie=0; ie<NewRadAccessData.ne; ie++)
@@ -2605,7 +2690,17 @@ int srTGenOptElem::RadResizeCore(srTSRWRadStructAccessData& OldRadAccessData, sr
 			}
 		}
 	}
+
+
+	char str[256];
+	sprintf(str,"%s %d","RadResizeCore: cycles:",NewRadAccessData.ne);
+	srwlPrintTime(str,&start);
+
+
 	if(WaveFrontTermWasTreated) TreatStronglyOscillatingTerm(NewRadAccessData, 'a', PolComp);
+
+	srwlPrintTime("RadResizeCore: TreatStronglyOscillatingTerm 2",&start);
+
 
 	OldRadAccessData.WfrQuadTermCanBeTreatedAtResizeX = OrigWfrQuadTermCanBeTreatedAtResizeX;
 	OldRadAccessData.WfrQuadTermCanBeTreatedAtResizeZ = OrigWfrQuadTermCanBeTreatedAtResizeZ;

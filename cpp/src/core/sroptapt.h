@@ -15,6 +15,9 @@
 #define __SROPTAPT_H
 
 #include "sroptshp.h"
+#include <stdio.h>
+#include "srwlib.h"
+
 
 //*************************************************************************
 
@@ -31,6 +34,9 @@ public:
 	//int PropagateRadiation(srTSRWRadStructAccessData* pRadAccessData, int MethNo, srTRadResizeVect& ResBeforeAndAfterVect)
 	int PropagateRadiation(srTSRWRadStructAccessData* pRadAccessData, srTParPrecWfrPropag& ParPrecWfrPropag, srTRadResizeVect& ResBeforeAndAfterVect)
 	{
+
+		printf("::::PropagateRadiation -> Aperture %d\n",ParPrecWfrPropag.MethNo);
+
 		char &MethNo = ParPrecWfrPropag.MethNo;
 
 		if(MethNo == 0) return PropagateRadiationMeth_0(pRadAccessData);
@@ -44,11 +50,14 @@ public:
 	int PropagateRadiationSingleE_Meth_0(srTSRWRadStructAccessData* pRadAccessData, srTSRWRadStructAccessData* pPrevRadAccessData)
 	{
 		int result;
+
 		if(pRadAccessData->Pres != 0) if(result = SetRadRepres(pRadAccessData, 0)) return result;
+
+
 		if(result = TraverseRadZXE(pRadAccessData)) return result;
 		if(result = PropagateRadMoments(pRadAccessData, 0)) return result;
-
 		SetNewNonZeroWfrLimits(pRadAccessData);
+
 		return 0;
 	}
 	int PropagateRadiationMeth_1(srTSRWRadStructAccessData* pRadAccessData)

@@ -21,6 +21,9 @@
 #include "srerror.h"
 #endif
 
+#include <stdio.h>
+#include "srwlib.h"
+
 //*************************************************************************
 
 struct srTDriftPropBufVars {
@@ -81,9 +84,15 @@ public:
 	//int PropagateRadiation(srTSRWRadStructAccessData* pRadAccessData, int MethNo, srTRadResizeVect& ResizeBeforeAndAfterVect)
 	int PropagateRadiation(srTSRWRadStructAccessData* pRadAccessData, srTParPrecWfrPropag& ParPrecWfrPropag, srTRadResizeVect& ResizeBeforeAndAfterVect)
 	{
+		double start;
+		get_walltime(&start);
+
 		int result = 0;
 		
 		ChooseLocalPropMode(pRadAccessData, ParPrecWfrPropag);
+
+		printf("::::PropagateRadiation -> Drift %d \n",LocalPropMode);
+
 		if(LocalPropMode == -1)
 		{
 			double GoodNx = pRadAccessData->nx*pRadAccessData->UnderSamplingX;
@@ -99,6 +108,9 @@ public:
 			}
 		}
 		
+		srwlPrintTime(":PropagateRadiation : LocalPropMode == -1",&start);
+
+
 		//if(ParPrecWfrPropag.AnalTreatment == 1)
 		//{// Treating linear terms analytically
 		//OC25102010: commented-out because of errors in case of partially-coherent emission and B fiber
@@ -111,7 +123,6 @@ public:
 		if(MethNo == 0) result = PropagateRadiationMeth_0(pRadAccessData);
 		else if(MethNo == 1) result = PropagateRadiationMeth_1(pRadAccessData);
 		else if(MethNo == 2) result = PropagateRadiationMeth_2(pRadAccessData, ParPrecWfrPropag, ResizeBeforeAndAfterVect);
-		
 		//if(ParPrecWfrPropag.AnalTreatment == 1)
 		//{// Treating linear terms analytically
 		//OC25102010: commented-out because of errors in case of partially-coherent emission and B fiber
@@ -124,6 +135,7 @@ public:
 	//int PropagateRadiationMeth_0(srTSRWRadStructAccessData* pRadAccessData)
 	int PropagateRadiationSingleE_Meth_0(srTSRWRadStructAccessData* pRadAccessData, srTSRWRadStructAccessData* pPrevRadAccessData)
 	{//it works for many photon energies too!
+
 		int result;
 		if(result = PropagateRadiationSimple(pRadAccessData)) return result;
 		if(result = PropagateRadMoments(pRadAccessData, 0)) return result;
@@ -242,6 +254,10 @@ public:
 	}
 	int PropagateRadiationSimple_AngRepres(srTSRWRadStructAccessData* pRadAccessData)
 	{
+		double start;
+		get_walltime(&start);
+
+
 		int result;
 		double xStartOld = pRadAccessData->xStart, zStartOld = pRadAccessData->zStart;
 		pRadAccessData->xStart = -(pRadAccessData->nx >> 1)*pRadAccessData->xStep;
@@ -253,11 +269,18 @@ public:
 
 			pRadAccessData->WfrEdgeCorrShouldBeDone = 0;	
 
+		srwlPrintTime(":PropagateRadiationSimple_AngRepres:setup",&start);
+
+
 		if(pRadAccessData->Pres != 1) 
 		{
 			if(result = SetRadRepres(pRadAccessData, 1)) return result;
 		}
+		srwlPrintTime(":PropagateRadiationSimple_AngRepres:SetRadRepres 1",&start);
+
 		if(result = TraverseRadZXE(pRadAccessData)) return result;
+
+		srwlPrintTime(":PropagateRadiationSimple_AngRepres:TraverseRadZXE",&start);
 
 			if(pRadAccessData->UseStartTrToShiftAtChangingRepresToCoord)
 			{
@@ -266,6 +289,8 @@ public:
 			}
 
 		if(result = SetRadRepres(pRadAccessData, 0)) return result;
+
+		srwlPrintTime(":PropagateRadiationSimple_AngRepres:SetRadRepres 2",&start);
 
 		pRadAccessData->xStart = xStartOld; pRadAccessData->zStart = zStartOld;
 
@@ -276,6 +301,10 @@ public:
 			}
 
 		pRadAccessData->SetNonZeroWavefrontLimitsToFullRange();
+
+		srwlPrintTime(":PropagateRadiationSimple_AngRepres:SetNonZeroWavefrontLimitsToFullRange 2",&start);
+
+
 		return 0;
 	}
 	int PropagateRadiationSimple_PropToWaist(srTSRWRadStructAccessData* pRadAccessData);

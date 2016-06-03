@@ -1,0 +1,5 @@
+rm -rf cpp/gcc/srwlpy*.so
+rm -rf cpp/gcc/libsrw.a
+make noclean
+cp cpp/gcc/srwlpy.so /home/yakubov/projects/Eucall/simex_platform/lib/python2.7/wpg/
+

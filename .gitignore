@@ -1,0 +1,7 @@
+*.pyc
+*.pyo
+*.a
+*.o
+*.so
+.cproject
+.project

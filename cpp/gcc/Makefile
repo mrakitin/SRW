@@ -16,6 +16,7 @@ CXX = c++
 SRW_SRC_DEF=	-D_GNU_SOURCE -D__USE_XOPEN2K8 -DFFTW_ENABLE_FLOAT -D_GM_WITHOUT_BASE -DSRWLIB_STATIC -DNO_TIMER -DANSI_DECLARATORS -DTRILIBRARY -DLINUX
 CFLAGS=	-O3 -fPIC -I$(SRW_SRC_GEN_DIR) -I$(SRW_SRC_LIB_DIR) -I$(SH_SRC_PARSE_DIR) -I$(SH_SRC_GEN_MATH_DIR) $(SRW_SRC_DEF) 
 
+
 PYPATH=/nsls2/projects/bldev/bldev-env
 #PYPATH=/usr
 #PYFLAGS=-I$(PYPATH)/include/python3.2m -L$(PYPATH)/lib/python3.2
@@ -31,7 +32,7 @@ PRG=	libsrw.a
 lib:	$(OBJ)
 	ar -cvq $(PRG) *.o
 	#cp $(PRG) $(LIB_DIR)/
-	rm -f *.o
+	#rm -f *.o
 
 %.o: $(SRW_SRC_LIB_DIR)/%.cpp
 	$(CC) $(CFLAGS) -c $<  

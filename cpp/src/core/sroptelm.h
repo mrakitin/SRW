@@ -224,6 +224,9 @@ public:
 
 	//int SetRadRepres(srTSRWRadStructAccessData*, char);
 	int SetRadRepres(srTSRWRadStructAccessData*, char, double* ar_xStartInSlicesE=0, double* ar_zStartInSlicesE=0);
+//SY
+	int SetRadRepres_old(srTSRWRadStructAccessData*, char, double* ar_xStartInSlicesE=0, double* ar_zStartInSlicesE=0);
+	int SetRadRepres_new(srTSRWRadStructAccessData*, char, double* ar_xStartInSlicesE=0, double* ar_zStartInSlicesE=0);
 	int SetRadRepres1D(srTRadSect1D*, char);
 
 	int SetupWfrEdgeCorrData(srTSRWRadStructAccessData*, float*, float*, srTDataPtrsForWfrEdgeCorr&);

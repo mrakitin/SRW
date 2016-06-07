@@ -1,4 +1,6 @@
 *.pyc
+ext_lib
+env
 *.pyo
 *.a
 *.o

@@ -1059,8 +1059,12 @@ void srTGenOptElem::MakeWfrEdgeCorrection1D(srTRadSect1D* pRadSect1D, float* pDa
 
 //*************************************************************************
 
-//int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char CoordOrAng)
 int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char CoordOrAng, double* ar_xStartInSlicesE, double* ar_zStartInSlicesE)
+{
+	SetRadRepres_new(pRadAccessData,CoordOrAng,ar_xStartInSlicesE,ar_zStartInSlicesE);
+}
+
+int srTGenOptElem::SetRadRepres_old(srTSRWRadStructAccessData* pRadAccessData, char CoordOrAng, double* ar_xStartInSlicesE, double* ar_zStartInSlicesE)
 {// 0- to coord.; 1- to ang.
 	int result;
 
@@ -1149,7 +1153,6 @@ int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char 
 
 		srwlPrintTime("SetRadRepres : setup",&start);
 
-
 		for(long ie = 0; ie < pRadAccessData->ne; ie++)
 		{
 			if(result = ExtractRadSliceConstE(pRadAccessData, ie, AuxEx, AuxEz)) return result;
@@ -1171,6 +1174,7 @@ int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char 
 			if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
 			FFT2DInfo.pData = AuxEz;
 			if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
+			if (ie == 0) printf ("in thread after fft %e\n",AuxEx[0]);
 
 			if(WfrEdgeCorrShouldBeTreated)
 			{
@@ -1196,6 +1200,203 @@ int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char 
 	sprintf(str,"%s %d","::SetRadRepres : cycles:",pRadAccessData->ne);
 	srwlPrintTime(str,&start);
 
+	printf("after %f %f %f %f\n",FFT2DInfo.xStepTr,FFT2DInfo.yStepTr,FFT2DInfo.xStartTr,FFT2DInfo.yStartTr);
+
+
+	pRadAccessData->xStep = FFT2DInfo.xStepTr;
+	pRadAccessData->zStep = FFT2DInfo.yStepTr;
+	pRadAccessData->xStart = FFT2DInfo.xStartTr;
+	pRadAccessData->zStart = FFT2DInfo.yStartTr;
+	pRadAccessData->Pres = CoordOrAng;
+
+	pRadAccessData->SetNonZeroWavefrontLimitsToFullRange();
+
+	return 0;
+}
+
+
+
+//int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char CoordOrAng)
+int srTGenOptElem::SetRadRepres_new(srTSRWRadStructAccessData* pRadAccessData, char CoordOrAng, double* ar_xStartInSlicesE, double* ar_zStartInSlicesE)
+{// 0- to coord.; 1- to ang.
+
+	int result;
+
+	double start;
+	get_walltime (&start);
+
+
+	char WfrEdgeCorrShouldBeTreated = pRadAccessData->WfrEdgeCorrShouldBeDone; // Turn on/off here
+
+	if(pRadAccessData->Pres == CoordOrAng) return 0;
+	char DirFFT = (CoordOrAng == 0)? -1 : 1;
+
+	CGenMathFFT2DInfo FFT2DInfo;
+	FFT2DInfo.xStep = pRadAccessData->xStep;
+	FFT2DInfo.yStep = pRadAccessData->zStep;
+	FFT2DInfo.xStart = pRadAccessData->xStart;
+	FFT2DInfo.yStart = pRadAccessData->zStart;
+	FFT2DInfo.Nx = pRadAccessData->nx;
+	FFT2DInfo.Ny = pRadAccessData->nz;
+	FFT2DInfo.Dir = DirFFT;
+	FFT2DInfo.UseGivenStartTrValues = 0;
+//New
+	if((pRadAccessData->AuxLong4 == 7777777) || ((CoordOrAng == 0) && pRadAccessData->UseStartTrToShiftAtChangingRepresToCoord))
+	{
+		FFT2DInfo.UseGivenStartTrValues = 1;
+		FFT2DInfo.xStartTr = pRadAccessData->xStartTr;
+		FFT2DInfo.yStartTr = pRadAccessData->zStartTr;
+	}
+//End New
+
+	if(pRadAccessData->ne == 1)
+	{
+		CGenMathFFT2D FFT2D;
+
+		srTDataPtrsForWfrEdgeCorr DataPtrsForWfrEdgeCorr;
+		if(WfrEdgeCorrShouldBeTreated)
+		{
+			if(CoordOrAng == 1)
+			{
+				if(result = SetupWfrEdgeCorrData(pRadAccessData, pRadAccessData->pBaseRadX, pRadAccessData->pBaseRadZ, DataPtrsForWfrEdgeCorr)) return result;
+			}
+		}
+
+		if(ar_xStartInSlicesE != 0) FFT2DInfo.xStart = *ar_xStartInSlicesE;
+		if(ar_zStartInSlicesE != 0) FFT2DInfo.yStart = *ar_zStartInSlicesE;
+
+		FFT2DInfo.pData = pRadAccessData->pBaseRadX;
+		if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
+		FFT2DInfo.pData = pRadAccessData->pBaseRadZ;
+		if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
+
+		if(WfrEdgeCorrShouldBeTreated)
+		{
+			if(CoordOrAng == 1)
+			{
+				if(DataPtrsForWfrEdgeCorr.WasSetup)
+				{
+					MakeWfrEdgeCorrection(pRadAccessData, pRadAccessData->pBaseRadX, pRadAccessData->pBaseRadZ, DataPtrsForWfrEdgeCorr);
+					DataPtrsForWfrEdgeCorr.DisposeData();
+				}
+			}
+		}
+	}
+	else
+	{
+		////OC151014 (test)
+		//if(!WfrEdgeCorrShouldBeTreated)
+		//{
+		//	FFT2DInfo.howMany = pRadAccessData->ne;
+		//	FFT2DInfo.iStride = pRadAccessData->ne; //periodicity for extracting next element of 2D array
+		//	FFT2DInfo.iDist = 1; //periodicity for starting extraction of next 2D array
+
+		//	FFT2DInfo.pData = pRadAccessData->pBaseRadX;
+		//	if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
+		//	FFT2DInfo.pData = pRadAccessData->pBaseRadZ;
+		//	if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
+		//}
+		//else
+		//{
+		//This is the original version; works by "slices"
+		long TwoNxNz = (pRadAccessData->nx*pRadAccessData->nz) << 1;
+
+		srwlPrintTime("SetRadRepres : setup",&start);
+
+
+// SY: return outside of parallel regions is not allowed - we do it outside
+
+		int* results = new int[pRadAccessData->ne];
+		if(results == 0) return MEMORY_ALLOCATION_FAILURE;
+		for(long ie = 0; ie < pRadAccessData->ne; ie++)
+			results[ie]=0;
+
+// SY: creation (and deletion) of FFTW plans is not thread-safe. Have to do this outside of threads.
+//      (and we don't need to recreate plans for same dimensions anyway)
+
+		fftwnd_plan Plan2DFFT;
+		if(FFT2DInfo.Dir > 0)
+			Plan2DFFT = fftw2d_create_plan(FFT2DInfo.Ny, FFT2DInfo.Nx, FFTW_FORWARD, FFTW_IN_PLACE|FFTW_THREADSAFE);
+		else
+			Plan2DFFT = fftw2d_create_plan(FFT2DInfo.Ny, FFT2DInfo.Nx, FFTW_BACKWARD, FFTW_IN_PLACE|FFTW_THREADSAFE);
+
+		#pragma omp parallel
+		{
+			CGenMathFFT2D FFT2D;
+
+// SY: allocate arrays for each thread (not for each ie)
+			float* AuxEx = new float[TwoNxNz];
+			float* AuxEz = new float[TwoNxNz];
+			if(AuxEz != 0 && AuxEz!=0)
+			{
+				#pragma omp for
+				for(long ie = 0; ie < pRadAccessData->ne; ie++)
+				{
+					// SY: use private variable FFT2DInfo_local instead of FFT2DInfo as it
+					//	   members are changed inside Make2DFFT.
+
+					CGenMathFFT2DInfo FFT2DInfo_local = FFT2DInfo;
+
+
+					if(results[ie] = ExtractRadSliceConstE(pRadAccessData, ie, AuxEx, AuxEz)) continue;
+
+					srTDataPtrsForWfrEdgeCorr DataPtrsForWfrEdgeCorr;
+					if(WfrEdgeCorrShouldBeTreated)
+					{
+						if(CoordOrAng == 1)
+						{
+							if(results[ie] = SetupWfrEdgeCorrData(pRadAccessData, AuxEx, AuxEz, DataPtrsForWfrEdgeCorr)) continue;
+						}
+					}
+
+					//After the FFT, all slices will be authomatically brought to the same mesh
+					if(ar_xStartInSlicesE != 0) FFT2DInfo_local.xStart = ar_xStartInSlicesE[ie];
+					if(ar_zStartInSlicesE != 0) FFT2DInfo_local.yStart = ar_zStartInSlicesE[ie];
+
+					FFT2DInfo_local.pData = AuxEx;
+					if(results[ie] = FFT2D.Make2DFFT(FFT2DInfo_local,&Plan2DFFT)) continue;
+
+					FFT2DInfo_local.pData = AuxEz;
+					if(results[ie] = FFT2D.Make2DFFT(FFT2DInfo_local,&Plan2DFFT)) continue;
+
+					if(WfrEdgeCorrShouldBeTreated)
+					{
+						if(CoordOrAng == 1)
+						{
+							if(DataPtrsForWfrEdgeCorr.WasSetup)
+							{
+								MakeWfrEdgeCorrection(pRadAccessData, AuxEx, AuxEz, DataPtrsForWfrEdgeCorr);
+								DataPtrsForWfrEdgeCorr.DisposeData();
+							}
+						}
+					}
+					results[ie] = SetupRadSliceConstE(pRadAccessData, ie, AuxEx, AuxEz);
+// SY: save FFT2DInfo from one of FFT2DInfo_local
+					if (ie == 0) FFT2DInfo = FFT2DInfo_local;
+				} // end for
+			}
+			else
+			{
+				results[0] = MEMORY_ALLOCATION_FAILURE;
+			}  // end if
+			if(AuxEx != 0) delete[] AuxEx;
+			if(AuxEz != 0) delete[] AuxEz;
+
+		} // end omp parallel
+
+		fftwnd_destroy_plan(Plan2DFFT);
+
+		for(long ie = 0; ie < pRadAccessData->ne; ie++)
+			if(results[ie]) return results[ie];
+
+		delete []results;
+
+		//}
+	}
+
+	char str[256];
+	sprintf(str,"%s %d","::SetRadRepres : cycles:",pRadAccessData->ne);
+	srwlPrintTime(str,&start);
 
 	pRadAccessData->xStep = FFT2DInfo.xStepTr;
 	pRadAccessData->zStep = FFT2DInfo.yStepTr;

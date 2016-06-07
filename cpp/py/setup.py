@@ -3,6 +3,8 @@ import os
 
 srwlpy = Extension(
     'srwlpy',
+    extra_link_args=['-fopenmp'],
+    extra_compile_args=['-Wno-sign-compare','-Wno-parentheses','-fopenmp','-Wno-write-strings'],
     define_macros=[('MAJOR_VERSION', '1'), ('MINOR_VERSION', '0')],
     include_dirs=[os.path.abspath('../src/lib')],
     libraries=['srw', 'm', 'fftw'],

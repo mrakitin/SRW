@@ -1,0 +1,112 @@
+Elapsed:                                                                        Load hdf5  3.77 s
+Elapsed:                                   defineOPD: AuxTransmAddSurfHeightProfileScaled  1.71 s
+Elapsed:                                                    propagate:defineOPD mirror2 x  1.72 s
+Elapsed:                                   defineOPD: AuxTransmAddSurfHeightProfileScaled  2.59 s
+Elapsed:                                                    propagate:defineOPD mirror1 x  2.62 s
+Elapsed:                                   defineOPD: AuxTransmAddSurfHeightProfileScaled  1.56 s
+Elapsed:                                                    propagate:defineOPD mirror2 y  1.73 s
+Elapsed:                                                   propagate:SetRepresElecField 1  9.51 s
+Elapsed:                                                           RadResizeGen: memalloc  0.22 s
+Elapsed:                                                    RadResizeGen: ModifyWfrNeNxNz 22.42 s
+Elapsed:                                                      RadResizeCore: cycles: 3747 18.01 s
+Elapsed:                                                      RadResizeGen: RadResizeCore 26.42 s
+Elapsed:                                                          Iteration: RadResizeGen 49.06 s
+Elapsed:      :PropagateRadiationMeth_0 : PropagateRadiationSingleE_Meth_0 - cycles: 3747 268.55 s
+Elapsed:                                                    Iteration: PropagateRadiation 268.55 s
+Elapsed:                                          PropagateRadiationGuided: Iteration : 1 317.61 s
+Elapsed:                                                    ::SetRadRepres : cycles: 3747 700.84 s
+Elapsed:                               :PropagateRadiationSimple_AngRepres:SetRadRepres 1 700.84 s
+Elapsed:                               :PropagateRadiationSimple_AngRepres:TraverseRadZXE 110.64 s
+Elapsed:                                                    ::SetRadRepres : cycles: 3747 682.57 s
+Elapsed:                               :PropagateRadiationSimple_AngRepres:SetRadRepres 2 682.57 s
+Elapsed:                                                    Iteration: PropagateRadiation 1494.05 s
+Elapsed:                                          PropagateRadiationGuided: Iteration : 2 1494.05 s
+Elapsed:                        RadResizeGen: TreatPolarizSepar-NewSRWRadStructAccessData 13.31 s
+Elapsed:                                   RadResizeGen: TreatPolarizSepar-PrepareStructs  7.17 s
+Elapsed:                                    RadResizeCore: TreatStronglyOscillatingTerm 1 243.92 s
+Elapsed:                                                      RadResizeCore: cycles: 3747 1254.70 s
+Elapsed:                                    RadResizeCore: TreatStronglyOscillatingTerm 2 134.83 s
+Elapsed:                                                      RadResizeGen: RadResizeCore 1633.45 s
+Elapsed:                                                  RadResizeGen: TreatPolarizSepar  0.43 s
+Elapsed:                                                          Iteration: RadResizeGen 1654.35 s
+Elapsed:      :PropagateRadiationMeth_0 : PropagateRadiationSingleE_Meth_0 - cycles: 3747 171.80 s
+Elapsed:                                                    Iteration: PropagateRadiation 171.80 s
+Elapsed:                                          PropagateRadiationGuided: Iteration : 3 1826.15 s
+Elapsed:      :PropagateRadiationMeth_0 : PropagateRadiationSingleE_Meth_0 - cycles: 3747 182.40 s
+Elapsed:                                                    Iteration: PropagateRadiation 182.40 s
+Elapsed:                                          PropagateRadiationGuided: Iteration : 4 182.40 s
+Elapsed:                              :ComputeRadMoments : TreatStronglyOscillatingTerm 1 135.83 s
+Elapsed:                                                :ComputeRadMoments : cycles: 3747 408.49 s
+Elapsed:                              :ComputeRadMoments : TreatStronglyOscillatingTerm 2 135.18 s
+Elapsed:                :EstimateWfrRadToSub_AnalytTreatQuadPhaseTerm:ComputeRadMoments 1 679.50 s
+Elapsed:                              :ComputeRadMoments : TreatStronglyOscillatingTerm 1 133.28 s
+Elapsed:                                                :ComputeRadMoments : cycles: 3747 412.05 s
+Elapsed:                              :ComputeRadMoments : TreatStronglyOscillatingTerm 2 141.85 s
+Elapsed:                :EstimateWfrRadToSub_AnalytTreatQuadPhaseTerm:ComputeRadMoments 2 687.17 s
+Elapsed: :SetupPropBufVars_AnalytTreatQuadPhaseTerm:EstimateWfrRadToSub_AnalytTreatQuadPhaseTerm 1366.67 s
+Elapsed: :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:SetupPropBufVars_AnalytTreatQuadPhaseTerm 1366.67 s
+Elapsed:              :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:TraverseRadZXE 1 71.54 s
+Elapsed:                                                    ::SetRadRepres : cycles: 3747 438.16 s
+Elapsed:                :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:SetRadRepres 2 438.16 s
+Elapsed:              :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:TraverseRadZXE 2 104.53 s
+Elapsed:                                                    ::SetRadRepres : cycles: 3747 429.51 s
+Elapsed:                :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:SetRadRepres 3 429.51 s
+Elapsed:              :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:TraverseRadZXE 3 70.26 s
+Elapsed:                                                    Iteration: PropagateRadiation 2480.67 s
+Elapsed:                                          PropagateRadiationGuided: Iteration : 5 2480.67 s
+Elapsed:                        RadResizeGen: TreatPolarizSepar-NewSRWRadStructAccessData  3.63 s
+Elapsed:                                   RadResizeGen: TreatPolarizSepar-PrepareStructs  0.79 s
+Elapsed:                                    RadResizeCore: TreatStronglyOscillatingTerm 1 126.30 s
+Elapsed:                                                      RadResizeCore: cycles: 3747 10.66 s
+Elapsed:                                    RadResizeCore: TreatStronglyOscillatingTerm 2 18.36 s
+Elapsed:                                                      RadResizeGen: RadResizeCore 155.31 s
+Elapsed:                                                  RadResizeGen: TreatPolarizSepar  0.28 s
+Elapsed:                                                          Iteration: RadResizeGen 160.01 s
+Elapsed:      :PropagateRadiationMeth_0 : PropagateRadiationSingleE_Meth_0 - cycles: 3747 40.75 s
+Elapsed:                                                    Iteration: PropagateRadiation 40.75 s
+Elapsed:                                          PropagateRadiationGuided: Iteration : 6 200.76 s
+Elapsed:      :PropagateRadiationMeth_0 : PropagateRadiationSingleE_Meth_0 - cycles: 3747 27.50 s
+Elapsed:                                                    Iteration: PropagateRadiation 27.50 s
+Elapsed:                                          PropagateRadiationGuided: Iteration : 7 27.50 s
+Elapsed:      :PropagateRadiationMeth_0 : PropagateRadiationSingleE_Meth_0 - cycles: 3747 17.44 s
+Elapsed:                                                    Iteration: PropagateRadiation 17.44 s
+Elapsed:                                          PropagateRadiationGuided: Iteration : 8 17.44 s
+Elapsed:              :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:TraverseRadZXE 1 11.53 s
+Elapsed:                                                    ::SetRadRepres : cycles: 3747 56.37 s
+Elapsed:                :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:SetRadRepres 2 56.37 s
+Elapsed:              :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:TraverseRadZXE 2 16.96 s
+Elapsed:                                                    ::SetRadRepres : cycles: 3747 55.70 s
+Elapsed:                :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:SetRadRepres 3 55.70 s
+Elapsed:              :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:TraverseRadZXE 3 11.75 s
+Elapsed:                                                    Iteration: PropagateRadiation 152.32 s
+Elapsed:                                          PropagateRadiationGuided: Iteration : 9 152.32 s
+Elapsed:      :PropagateRadiationMeth_0 : PropagateRadiationSingleE_Meth_0 - cycles: 3747 64.18 s
+Elapsed:                                                    Iteration: PropagateRadiation 64.19 s
+Elapsed:                                         PropagateRadiationGuided: Iteration : 10 64.19 s
+Elapsed:      :PropagateRadiationMeth_0 : PropagateRadiationSingleE_Meth_0 - cycles: 3747 16.65 s
+Elapsed:                                                    Iteration: PropagateRadiation 16.65 s
+Elapsed:                                         PropagateRadiationGuided: Iteration : 11 16.65 s
+Elapsed:              :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:TraverseRadZXE 1 11.51 s
+Elapsed:                                                    ::SetRadRepres : cycles: 3747 56.78 s
+Elapsed:                :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:SetRadRepres 2 56.78 s
+Elapsed:              :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:TraverseRadZXE 2 16.55 s
+Elapsed:                                                    ::SetRadRepres : cycles: 3747 58.70 s
+Elapsed:                :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:SetRadRepres 3 58.70 s
+Elapsed:              :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:TraverseRadZXE 3 11.52 s
+Elapsed:               :PropagateRadiationSimple_AnalytTreatQuadPhaseTerm:MirrorFieldData  7.61 s
+Elapsed:                                                    Iteration: PropagateRadiation 162.67 s
+Elapsed:                                         PropagateRadiationGuided: Iteration : 12 162.67 s
+Elapsed:                                    srwlPropagElecField: PropagateRadiationGuided 6942.41 s
+Elapsed:                                     :srwlpy_PropagElecField :srwlPropagElecField 6942.41 s
+Elapsed:                                                          propagate:bl0.propagate 6947.95 s
+Elapsed:                                                   propagate:SetRepresElecField 2 147.63 s
+Elapsed:                        RadResizeGen: TreatPolarizSepar-NewSRWRadStructAccessData  1.66 s
+Elapsed:                                    RadResizeCore: TreatStronglyOscillatingTerm 1 29.65 s
+Elapsed:                                                      RadResizeCore: cycles: 3747 13.20 s
+Elapsed:                                    RadResizeCore: TreatStronglyOscillatingTerm 2  0.71 s
+Elapsed:                                                      RadResizeGen: RadResizeCore 43.55 s
+Elapsed:                                                        propagate:ResizeElecField 45.33 s
+Elapsed:                                                                   Calculate_fwhm  3.03 s
+Elapsed:                                                     propagate:Set field str(bl0)  2.64 s
+Elapsed:                                                                       store_hdf5 21.05 s
+Elapsed:                                                                        propagate 7187.05 s

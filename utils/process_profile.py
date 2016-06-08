@@ -4,6 +4,7 @@
 
 
 import sys
+import operator
 
 class Node:
       name = ''
@@ -39,6 +40,11 @@ def printchilds(node,depth):
         printchilds(child,depth+1)
     
 fname=sys.argv[1]
+if (len(sys.argv)>2):
+    mode=sys.argv[2]
+else:
+    mode = 0
+
 with open(fname) as f:
     lines = f.readlines()
 
@@ -55,7 +61,8 @@ for line in lines:
     s.type=0
     s.listchilds=[]
     data.append(s)
-  
+
+times={}
 for node in data:
     if node.name[0:2]=="::":
         list=node.name[2:].split(':')
@@ -89,6 +96,16 @@ for i, node in enumerate(data):
             data[j].listchilds.append(node)
 #            print 'append ', node.child, 'to ',parent            
             break
+for node in data:
+        if (node.child in times):
+            times[node.child]+=float(node.time)
+        else:
+            times[node.child]=float(node.time)
+
         
-printchilds(data[-1],0)
-        
+if (mode == 0):        
+    printchilds(data[-1],0)
+else:
+     sorted_times = sorted(times.items(), key=lambda value: value[1],reverse=True)
+     for key in sorted_times:
+        print "%60s %.1f s"%(key[0],key[1])    

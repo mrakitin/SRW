@@ -2702,19 +2702,12 @@ int srTGenOptElem::RadResizeCore(srTSRWRadStructAccessData& OldRadAccessData, sr
 	}
 
 
-
 	double xStepInvOld = 1./OldRadAccessData.xStep;
 	double zStepInvOld = 1./OldRadAccessData.zStep;
 	int nx_mi_1Old = OldRadAccessData.nx - 1;
 	int nz_mi_1Old = OldRadAccessData.nz - 1;
 	int nx_mi_2Old = nx_mi_1Old - 1;
 	int nz_mi_2Old = nz_mi_1Old - 1;
-
-	srTInterpolAux01 InterpolAux01;
-
-	srTInterpolAux02 InterpolAux02[4], InterpolAux02I[2];
-	srTInterpolAuxF AuxF[4], AuxFI[2];
-	int ixStOld, izStOld, ixStOldPrev = -1000, izStOldPrev = -1000;
 
 	float *pEX0_New = 0, *pEZ0_New = 0;
 	if(TreatPolCompX) pEX0_New = NewRadAccessData.pBaseRadX;
@@ -2726,21 +2719,28 @@ int srTGenOptElem::RadResizeCore(srTSRWRadStructAccessData& OldRadAccessData, sr
 	long PerX_Old = PerX_New;
 	long PerZ_Old = PerX_Old*OldRadAccessData.nx;
 
-	float BufF[4], BufFI[2];
-	char UseLowOrderInterp_PolCompX, UseLowOrderInterp_PolCompZ;
-
 	srwlPrintTime("RadResizeCore: init variables",&start);
 
 
 	int result = 0;
+
+	#pragma omp parallel for
 	for(int ie=0; ie<NewRadAccessData.ne; ie++)
 	{
-		ixStOldPrev = -1000; izStOldPrev = -1000;
+		srTInterpolAux01 InterpolAux01;
+		srTInterpolAux02 InterpolAux02[4], InterpolAux02I[2];
+		srTInterpolAuxF AuxF[4], AuxFI[2];
+		int ixStOld, izStOld, ixStOldPrev = -1000, izStOldPrev = -1000;
+
+		float BufF[4], BufFI[2];
+		char UseLowOrderInterp_PolCompX, UseLowOrderInterp_PolCompZ;
+
 
 		long Two_ie = ie << 1;
 		for(int iz=izStart; iz<=izEnd; iz++)
 		{
-			if(result = srYield.Check()) return result;
+			// SY: do we need this (always returns 0, updates some clock)
+			//		if(result = srYield.Check()) return result;
 
 			double zAbs = NewRadAccessData.zStart + iz*NewRadAccessData.zStep;
 
@@ -2806,7 +2806,6 @@ int srTGenOptElem::RadResizeCore(srTSRWRadStructAccessData& OldRadAccessData, sr
 					{
 						float* pExSt_Old = OldRadAccessData.pBaseRadX + TotOffsetOld;
 						GetCellDataForInterpol(pExSt_Old, PerX_Old, PerZ_Old, AuxF);
-
 						SetupCellDataI(AuxF, AuxFI);
 						UseLowOrderInterp_PolCompX = CheckForLowOrderInterp(AuxF, AuxFI, ixcOld_mi_ixStOld, izcOld_mi_izStOld, &InterpolAux01, InterpolAux02, InterpolAux02I);
 

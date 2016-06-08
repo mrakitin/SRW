@@ -1502,10 +1502,8 @@ int srTGenOptElem::ComputeRadMoments(srTSRWRadStructAccessData* pSRWRadStructAcc
 	const double Inv_eV_In_m = 1.239842E-06;
 
 	srTAuxMatStat AuxMatStat; //OC13112010 (uncommented)
-	int IndLims[4];
 	const double RelPowForLimits = 0.9; //to steer
 	
-	CHGenObj hRad(pSRWRadStructAccessData, true); //OC13112010
 	int result = 0;
 
 	//if(pSRWRadStructAccessData->Pres != 0)
@@ -1525,8 +1523,6 @@ int srTGenOptElem::ComputeRadMoments(srTSRWRadStructAccessData* pSRWRadStructAcc
 	}
 	srwlPrintTime(":ComputeRadMoments : TreatStronglyOscillatingTerm 1",&start);
 
-	double SumsX[22], SumsZ[22], ff[22];
-
 	float *fpX0 = pSRWRadStructAccessData->pBaseRadX;
 	float *fpZ0 = pSRWRadStructAccessData->pBaseRadZ;
 	bool ExIsOK = fpX0 != 0; //13112011
@@ -1538,11 +1534,9 @@ int srTGenOptElem::ComputeRadMoments(srTSRWRadStructAccessData* pSRWRadStructAcc
 	int nx_mi_1 = pSRWRadStructAccessData->nx - 1;
 	int nz_mi_1 = pSRWRadStructAccessData->nz - 1;
 
-	double ePh = pSRWRadStructAccessData->eStart; //This assumes wavefront in Time domain; Photon Energy in eV !
-	//If wavefront is in Time-domain representation, average photon energy should be used
+	double ePh = pSRWRadStructAccessData->eStart;
 
 	//float *fpMomX = pSRWRadStructAccessData->pMomX, *fpMomZ = pSRWRadStructAccessData->pMomZ;
-	double *fpMomX = pSRWRadStructAccessData->pMomX, *fpMomZ = pSRWRadStructAccessData->pMomZ; //130311
 	int AmOfMom = 11;
 
 	double InvStepX = 1./pSRWRadStructAccessData->xStep;
@@ -1555,9 +1549,21 @@ int srTGenOptElem::ComputeRadMoments(srTSRWRadStructAccessData* pSRWRadStructAcc
 
 	srwlPrintTime(":ComputeRadMoments : setup",&start);
 
-
+	#pragma omp parallel for
 	for(int ie=0; ie<pSRWRadStructAccessData->ne; ie++)
 	{
+
+		CHGenObj hRad(pSRWRadStructAccessData, true); //OC13112010
+		double SumsX[22], SumsZ[22], ff[22];
+		int IndLims[4];
+
+
+		double ePh = pSRWRadStructAccessData->eStart + pSRWRadStructAccessData->eStep*ie; //This assumes wavefront in Time domain; Photon Energy in eV !
+		//If wavefront is in Time-domain representation, average photon energy should be used
+
+		double *fpMomX = pSRWRadStructAccessData->pMomX + ie*AmOfMom;
+		double *fpMomZ = pSRWRadStructAccessData->pMomZ + ie*AmOfMom; //130311
+
 		if(!IsFreqRepres)
 		{
 			ePh = pSRWRadStructAccessData->avgPhotEn; //?? OC041108
@@ -1602,7 +1608,10 @@ int srTGenOptElem::ComputeRadMoments(srTSRWRadStructAccessData* pSRWRadStructAcc
 		for(int iz=0; iz<pSRWRadStructAccessData->nz; iz++)
 		//for(int iz=IndLims[2]; iz<=IndLims[3]; iz++)
 		{
-			if(result = srYield.Check()) return result;
+
+			// SY: do we need this (always returns 0, updates some clock)
+			//		if(result = srYield.Check()) return result;
+
 
 			bool vertCoordInsidePowLim = ((iz >= IndLims[2]) && (iz <= IndLims[3]));
 
@@ -1922,9 +1931,6 @@ int srTGenOptElem::ComputeRadMoments(srTSRWRadStructAccessData* pSRWRadStructAcc
 				*(MomZPtrs.pZPZP) = 0.; // <z'z'>
 			}
 		}
-		
-		ePh += pSRWRadStructAccessData->eStep;
-		fpMomX += AmOfMom; fpMomZ += AmOfMom;
 	}
 
 	char str[256];

@@ -1059,165 +1059,8 @@ void srTGenOptElem::MakeWfrEdgeCorrection1D(srTRadSect1D* pRadSect1D, float* pDa
 
 //*************************************************************************
 
-int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char CoordOrAng, double* ar_xStartInSlicesE, double* ar_zStartInSlicesE)
-{
-	SetRadRepres_new(pRadAccessData,CoordOrAng,ar_xStartInSlicesE,ar_zStartInSlicesE);
-}
-
-int srTGenOptElem::SetRadRepres_old(srTSRWRadStructAccessData* pRadAccessData, char CoordOrAng, double* ar_xStartInSlicesE, double* ar_zStartInSlicesE)
-{// 0- to coord.; 1- to ang.
-	int result;
-
-	double start;
-	get_walltime (&start);
-
-
-	char WfrEdgeCorrShouldBeTreated = pRadAccessData->WfrEdgeCorrShouldBeDone; // Turn on/off here
-
-	if(pRadAccessData->Pres == CoordOrAng) return 0;
-	char DirFFT = (CoordOrAng == 0)? -1 : 1;
-
-	CGenMathFFT2DInfo FFT2DInfo;
-	FFT2DInfo.xStep = pRadAccessData->xStep;
-	FFT2DInfo.yStep = pRadAccessData->zStep;
-	FFT2DInfo.xStart = pRadAccessData->xStart;
-	FFT2DInfo.yStart = pRadAccessData->zStart;
-	FFT2DInfo.Nx = pRadAccessData->nx;
-	FFT2DInfo.Ny = pRadAccessData->nz;
-	FFT2DInfo.Dir = DirFFT;
-	FFT2DInfo.UseGivenStartTrValues = 0;
-//New
-	if((pRadAccessData->AuxLong4 == 7777777) || ((CoordOrAng == 0) && pRadAccessData->UseStartTrToShiftAtChangingRepresToCoord))
-	{
-		FFT2DInfo.UseGivenStartTrValues = 1;
-		FFT2DInfo.xStartTr = pRadAccessData->xStartTr;
-		FFT2DInfo.yStartTr = pRadAccessData->zStartTr;
-	}
-//End New
-
-	CGenMathFFT2D FFT2D;
-
-	if(pRadAccessData->ne == 1)
-	{
-		srTDataPtrsForWfrEdgeCorr DataPtrsForWfrEdgeCorr;
-		if(WfrEdgeCorrShouldBeTreated)
-		{
-			if(CoordOrAng == 1)
-			{
-				if(result = SetupWfrEdgeCorrData(pRadAccessData, pRadAccessData->pBaseRadX, pRadAccessData->pBaseRadZ, DataPtrsForWfrEdgeCorr)) return result;
-			}
-		}
-
-		if(ar_xStartInSlicesE != 0) FFT2DInfo.xStart = *ar_xStartInSlicesE;
-		if(ar_zStartInSlicesE != 0) FFT2DInfo.yStart = *ar_zStartInSlicesE;
-
-		FFT2DInfo.pData = pRadAccessData->pBaseRadX;
-		if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
-		FFT2DInfo.pData = pRadAccessData->pBaseRadZ;
-		if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
-
-		if(WfrEdgeCorrShouldBeTreated)
-		{
-			if(CoordOrAng == 1)
-			{
-				if(DataPtrsForWfrEdgeCorr.WasSetup)
-				{
-					MakeWfrEdgeCorrection(pRadAccessData, pRadAccessData->pBaseRadX, pRadAccessData->pBaseRadZ, DataPtrsForWfrEdgeCorr);
-					DataPtrsForWfrEdgeCorr.DisposeData();
-				}
-			}
-		}
-	}
-	else
-	{
-		////OC151014 (test)
-		//if(!WfrEdgeCorrShouldBeTreated)
-		//{
-		//	FFT2DInfo.howMany = pRadAccessData->ne;
-		//	FFT2DInfo.iStride = pRadAccessData->ne; //periodicity for extracting next element of 2D array
-		//	FFT2DInfo.iDist = 1; //periodicity for starting extraction of next 2D array
-
-		//	FFT2DInfo.pData = pRadAccessData->pBaseRadX;
-		//	if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
-		//	FFT2DInfo.pData = pRadAccessData->pBaseRadZ;
-		//	if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
-		//}
-		//else
-		//{
-		//This is the original version; works by "slices"
-		long TwoNxNz = (pRadAccessData->nx*pRadAccessData->nz) << 1;
-		float* AuxEx = new float[TwoNxNz];
-		if(AuxEx == 0) return MEMORY_ALLOCATION_FAILURE;
-		float* AuxEz = new float[TwoNxNz];
-		if(AuxEz == 0) return MEMORY_ALLOCATION_FAILURE;
-
-		srwlPrintTime("SetRadRepres : setup",&start);
-
-		for(long ie = 0; ie < pRadAccessData->ne; ie++)
-		{
-			if(result = ExtractRadSliceConstE(pRadAccessData, ie, AuxEx, AuxEz)) return result;
-
-			srTDataPtrsForWfrEdgeCorr DataPtrsForWfrEdgeCorr;
-			if(WfrEdgeCorrShouldBeTreated)
-			{
-				if(CoordOrAng == 1)
-				{
-					if(result = SetupWfrEdgeCorrData(pRadAccessData, AuxEx, AuxEz, DataPtrsForWfrEdgeCorr)) return result;
-				}
-			}
-
-			//After the FFT, all slices will be authomatically brought to the same mesh
-			if(ar_xStartInSlicesE != 0) FFT2DInfo.xStart = ar_xStartInSlicesE[ie];
-			if(ar_zStartInSlicesE != 0) FFT2DInfo.yStart = ar_zStartInSlicesE[ie];
-
-			FFT2DInfo.pData = AuxEx;
-			if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
-			FFT2DInfo.pData = AuxEz;
-			if(result = FFT2D.Make2DFFT(FFT2DInfo)) return result;
-			if (ie == 0) printf ("in thread after fft %e\n",AuxEx[0]);
-
-			if(WfrEdgeCorrShouldBeTreated)
-			{
-				if(CoordOrAng == 1)
-				{
-					if(DataPtrsForWfrEdgeCorr.WasSetup)
-					{
-						MakeWfrEdgeCorrection(pRadAccessData, AuxEx, AuxEz, DataPtrsForWfrEdgeCorr);
-						DataPtrsForWfrEdgeCorr.DisposeData();
-					}
-				}
-			}
-
-			if(result = SetupRadSliceConstE(pRadAccessData, ie, AuxEx, AuxEz)) return result;
-		}
-
-		if(AuxEx != 0) delete[] AuxEx;
-		if(AuxEz != 0) delete[] AuxEz;
-		//}
-	}
-
-	char str[256];
-	sprintf(str,"%s %d","::SetRadRepres : cycles:",pRadAccessData->ne);
-	srwlPrintTime(str,&start);
-
-	printf("after %f %f %f %f\n",FFT2DInfo.xStepTr,FFT2DInfo.yStepTr,FFT2DInfo.xStartTr,FFT2DInfo.yStartTr);
-
-
-	pRadAccessData->xStep = FFT2DInfo.xStepTr;
-	pRadAccessData->zStep = FFT2DInfo.yStepTr;
-	pRadAccessData->xStart = FFT2DInfo.xStartTr;
-	pRadAccessData->zStart = FFT2DInfo.yStartTr;
-	pRadAccessData->Pres = CoordOrAng;
-
-	pRadAccessData->SetNonZeroWavefrontLimitsToFullRange();
-
-	return 0;
-}
-
-
-
 //int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char CoordOrAng)
-int srTGenOptElem::SetRadRepres_new(srTSRWRadStructAccessData* pRadAccessData, char CoordOrAng, double* ar_xStartInSlicesE, double* ar_zStartInSlicesE)
+int srTGenOptElem::SetRadRepres(srTSRWRadStructAccessData* pRadAccessData, char CoordOrAng, double* ar_xStartInSlicesE, double* ar_zStartInSlicesE)
 {// 0- to coord.; 1- to ang.
 
 	int result;
@@ -1533,8 +1376,6 @@ int srTGenOptElem::ComputeRadMoments(srTSRWRadStructAccessData* pSRWRadStructAcc
 
 	int nx_mi_1 = pSRWRadStructAccessData->nx - 1;
 	int nz_mi_1 = pSRWRadStructAccessData->nz - 1;
-
-	double ePh = pSRWRadStructAccessData->eStart;
 
 	//float *fpMomX = pSRWRadStructAccessData->pMomX, *fpMomZ = pSRWRadStructAccessData->pMomZ;
 	int AmOfMom = 11;
@@ -4367,11 +4208,6 @@ void srTGenOptElem::TreatStronglyOscillatingTerm(srTSRWRadStructAccessData& RadA
 
 	if(AddOrRem == 'r') { ConstRx = -ConstRx; ConstRz = -ConstRz;}
 
-	double ConstRxE, ConstRzE;
-	double ePh = RadAccessData.eStart, x, z, zE2;
-	double Phase;
-	float CosPh, SinPh;
-
 	float *pEX0 = 0, *pEZ0 = 0;
 	if(TreatPolCompX) pEX0 = RadAccessData.pBaseRadX;
 	if(TreatPolCompZ) pEZ0 = RadAccessData.pBaseRadZ;
@@ -4387,8 +4223,22 @@ void srTGenOptElem::TreatStronglyOscillatingTerm(srTSRWRadStructAccessData& RadA
 	}
 
 	//for(int ie=0; ie<RadAccessData.ne; ie++)
+	#pragma omp parallel for
 	for(int ie=ieStart; ie<ieBefEnd; ie++) //OC161008
 	{
+		double Phase;
+		float CosPh, SinPh;
+		double ConstRxE, ConstRzE;
+		double x, z, zE2;
+
+// SY: to have one-to-one with previous version (so that tests do no fail)
+		double ePh = RadAccessData.eStart;
+		for (int i = ieStart; i<ie; i++)
+			ePh += RadAccessData.eStep;
+// SY: can be replaced with this
+//		double ePh = RadAccessData.eStart + RadAccessData.eStep*(ie-ieStart);
+
+
 		if(RadAccessData.PresT == 1)
 		{
 			ePh = RadAccessData.avgPhotEn; //?? OC041108
@@ -4459,7 +4309,6 @@ void srTGenOptElem::TreatStronglyOscillatingTerm(srTSRWRadStructAccessData& RadA
 			PhaseAddZ = 0.;
 			if(RadAccessData.WfrQuadTermCanBeTreatedAtResizeZ) PhaseAddZ = ConstRzE*zE2;
 		}
-		ePh += RadAccessData.eStep;
 	}
 }
 

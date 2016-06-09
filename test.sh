@@ -21,7 +21,7 @@ then
 	echo -e "$COL_BLUE OK $COL_RESET"
 else
 	echo -e "$COL_RED FAILED $COL_RESET"
-	diff -r data_example_14 data_example_14_ini
+#	diff -r data_example_14 data_example_14_ini
 fi
 
 cd - >/dev/null

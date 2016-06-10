@@ -30,6 +30,8 @@
 #include "sropthck.h"
 #include "sroptgrat.h"
 
+
+#include "omp.h"
 //*************************************************************************
 
 extern srTYield srYield;
@@ -139,16 +141,28 @@ int srTGenOptElem::TraverseRadZXE(srTSRWRadStructAccessData* pRadAccessData)
 	long PerX = pRadAccessData->ne << 1;
 	long PerZ = PerX*pRadAccessData->nx;
 
-	srTEFieldPtrs EFieldPtrs;
-	srTEXZ EXZ;
-	EXZ.z = pRadAccessData->zStart;
-	long izPerZ = 0;
-	long iTotTest = 0; //OCTEST
+// SY: is not used
+//	long iTotTest = 0; //OCTEST
+//	int result = 0;
 
-	int result = 0;
+	#pragma omp parallel for if (omp_get_num_threads()==1) // to avoid nested multi-threading
 	for(int iz=0; iz<pRadAccessData->nz; iz++)
 	{
-		if(result = srYield.Check()) return result;
+// SY: do we need this (always returns 0, updates some clock)
+//		if(result = srYield.Check()) return result;
+
+		srTEFieldPtrs EFieldPtrs;
+
+		long izPerZ = iz * PerZ;
+
+		srTEXZ EXZ;
+
+// SY: to have one-to-one with previous version (so that tests do no fail)
+		EXZ.z = pRadAccessData->zStart;
+		for (int i=0; i<iz; i++)
+			EXZ.z += pRadAccessData->zStep;
+// SY: can be replaced with this
+//		EXZ.z = pRadAccessData->zStart + iz * pRadAccessData->zStep;
 
 		float *pEx_StartForX = pEx0 + izPerZ;
 		float *pEz_StartForX = pEz0 + izPerZ;
@@ -188,7 +202,8 @@ int srTGenOptElem::TraverseRadZXE(srTSRWRadStructAccessData* pRadAccessData)
 				EXZ.aux_offset = izPerZ + ixPerX + iePerE;
 				RadPointModifier(EXZ, EFieldPtrs);
 
-				iTotTest++; //OCTEST
+// SY: is not used
+//				iTotTest++; //OCTEST
 
 				iePerE += 2;
 				EXZ.e += pRadAccessData->eStep;
@@ -196,8 +211,6 @@ int srTGenOptElem::TraverseRadZXE(srTSRWRadStructAccessData* pRadAccessData)
 			ixPerX += PerX;
 			EXZ.x += pRadAccessData->xStep;
 		}
-		izPerZ += PerZ;
-		EXZ.z += pRadAccessData->zStep;
 	}
 	return 0;
 }

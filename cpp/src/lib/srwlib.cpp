@@ -984,7 +984,9 @@ EXP void CALL srwlPrintTime(char* str, double* start){
 	get_walltime (&end);
 	double dif= end-*start;
 	if (dif > 0.1)
+	{
 		printf ("Elapsed: %80s %5.2f s\n",str,dif);
 		fflush(stdout);
+	}
 	*start=end;
 }

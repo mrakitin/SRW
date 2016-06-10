@@ -490,59 +490,71 @@ int srTGenOptElem::UpdateGenRadStructFromSlicesConstE_Meth_0(srTSRWRadStructAcce
 **/
 //*************************************************************************
 
-int srTGenOptElem::UpdateGenRadStructSliceConstE_Meth_0(srTSRWRadStructAccessData* pRadDataSliceConstE, int ie, srTSRWRadStructAccessData* pRadAccessData)
+int srTGenOptElem::UpdateGenRadStructSliceConstE_Meth_0(srTSRWRadStructAccessData* pRadDataSliceConstE, int ie,
+														srTSRWRadStructAccessData* pRadAccessData,int update_mode)
 {//Compose the Electric Field of the pRadAccessData from the slices ConstE.
  //The slices are assumed to have same dimensions over nx and nz. 
+
+// SY: update_mode - 1  - compose Electric Field only
+// 					 2  - updates limits and Radii only
+// 					 0  - do all (default)
+// modes are needed for OpenMP stuff
+
+
 	if((pRadAccessData == 0) || (pRadDataSliceConstE == 0) || (ie < 0)) return 0;
 
-	float *pEx0 = pRadAccessData->pBaseRadX;
-	float *pEz0 = pRadAccessData->pBaseRadZ;
-	
-	int neCom = pRadAccessData->ne;
-	int nxCom = pRadAccessData->nx;
-	int nzCom = pRadAccessData->nz;
-	if(neCom <= 0) return 0;
+	if (update_mode == 1 || update_mode == 0) {
+		float *pEx0 = pRadAccessData->pBaseRadX;
+		float *pEz0 = pRadAccessData->pBaseRadZ;
 
-	long PerX = neCom << 1;
-	long PerZ = PerX*nxCom;
+		int neCom = pRadAccessData->ne;
+		int nxCom = pRadAccessData->nx;
+		int nzCom = pRadAccessData->nz;
+		if(neCom <= 0) return 0;
 
-	long izPerZ = 0;
-	long iePerE = ie << 1;
-	float *tSliceEx = pRadDataSliceConstE->pBaseRadX;
-	float *tSliceEz = pRadDataSliceConstE->pBaseRadZ;
+		long PerX = neCom << 1;
+		long PerZ = PerX*nxCom;
 
-	for(int iz=0; iz<nzCom; iz++)
-	{
-		float *pEx_StartForX = pEx0 + izPerZ;
-		float *pEz_StartForX = pEz0 + izPerZ;
-		long ixPerX = 0;
+		long izPerZ = 0;
+		long iePerE = ie << 1;
+		float *tSliceEx = pRadDataSliceConstE->pBaseRadX;
+		float *tSliceEz = pRadDataSliceConstE->pBaseRadZ;
 
-		for(int ix=0; ix<pRadAccessData->nx; ix++)
+		for(int iz=0; iz<nzCom; iz++)
 		{
-			long ixPerX_p_iePerE = ixPerX + iePerE;
-			float *pEx = pEx_StartForX + ixPerX_p_iePerE;
-			float *pEz = pEz_StartForX + ixPerX_p_iePerE;
+			float *pEx_StartForX = pEx0 + izPerZ;
+			float *pEz_StartForX = pEz0 + izPerZ;
+			long ixPerX = 0;
 
-			*(pEx++) = *(tSliceEx++); *pEx = *(tSliceEx++);
-			*(pEz++) = *(tSliceEz++); *pEz = *(tSliceEz++);
+			for(int ix=0; ix<pRadAccessData->nx; ix++)
+			{
+				long ixPerX_p_iePerE = ixPerX + iePerE;
+				float *pEx = pEx_StartForX + ixPerX_p_iePerE;
+				float *pEz = pEz_StartForX + ixPerX_p_iePerE;
 
-			ixPerX += PerX;
+				*(pEx++) = *(tSliceEx++); *pEx = *(tSliceEx++);
+				*(pEz++) = *(tSliceEz++); *pEz = *(tSliceEz++);
+
+				ixPerX += PerX;
+			}
+			izPerZ += PerZ;
 		}
-		izPerZ += PerZ;
 	}
 
-	//Update wavefront limits in the main rad. structure:
-	if(pRadAccessData->xWfrMin > pRadDataSliceConstE->xWfrMin) pRadAccessData->xWfrMin = pRadDataSliceConstE->xWfrMin;
-	if(pRadAccessData->xWfrMax < pRadDataSliceConstE->xWfrMax) pRadAccessData->xWfrMax = pRadDataSliceConstE->xWfrMax;
-	if(pRadAccessData->zWfrMin > pRadDataSliceConstE->zWfrMin) pRadAccessData->zWfrMin = pRadDataSliceConstE->zWfrMin;
-	if(pRadAccessData->zWfrMax < pRadDataSliceConstE->zWfrMax) pRadAccessData->zWfrMax = pRadDataSliceConstE->zWfrMax;
+	if (update_mode == 2 || update_mode == 0) {
+		//Update wavefront limits in the main rad. structure:
+		if(pRadAccessData->xWfrMin > pRadDataSliceConstE->xWfrMin) pRadAccessData->xWfrMin = pRadDataSliceConstE->xWfrMin;
+		if(pRadAccessData->xWfrMax < pRadDataSliceConstE->xWfrMax) pRadAccessData->xWfrMax = pRadDataSliceConstE->xWfrMax;
+		if(pRadAccessData->zWfrMin > pRadDataSliceConstE->zWfrMin) pRadAccessData->zWfrMin = pRadDataSliceConstE->zWfrMin;
+		if(pRadAccessData->zWfrMax < pRadDataSliceConstE->zWfrMax) pRadAccessData->zWfrMax = pRadDataSliceConstE->zWfrMax;
 
-	//Update wavefront radii in the main rad. structure (making average?):
-	double inv_ie_p_1 = 1./(ie + 1);
-	pRadAccessData->RobsX = (ie*(pRadAccessData->RobsX) + pRadDataSliceConstE->RobsX)*inv_ie_p_1;
-	pRadAccessData->RobsZ = (ie*(pRadAccessData->RobsZ) + pRadDataSliceConstE->RobsZ)*inv_ie_p_1;
-	pRadAccessData->RobsXAbsErr = (ie*(pRadAccessData->RobsXAbsErr) + pRadDataSliceConstE->RobsXAbsErr)*inv_ie_p_1;
-	pRadAccessData->RobsZAbsErr = (ie*(pRadAccessData->RobsZAbsErr) + pRadDataSliceConstE->RobsZAbsErr)*inv_ie_p_1;
+		//Update wavefront radii in the main rad. structure (making average?):
+		double inv_ie_p_1 = 1./(ie + 1);
+		pRadAccessData->RobsX = (ie*(pRadAccessData->RobsX) + pRadDataSliceConstE->RobsX)*inv_ie_p_1;
+		pRadAccessData->RobsZ = (ie*(pRadAccessData->RobsZ) + pRadDataSliceConstE->RobsZ)*inv_ie_p_1;
+		pRadAccessData->RobsXAbsErr = (ie*(pRadAccessData->RobsXAbsErr) + pRadDataSliceConstE->RobsXAbsErr)*inv_ie_p_1;
+		pRadAccessData->RobsZAbsErr = (ie*(pRadAccessData->RobsZAbsErr) + pRadDataSliceConstE->RobsZAbsErr)*inv_ie_p_1;
+	}
 
 	//assuming that the mesh in all slices is transformed the same way
 	//if(ie == (pRadAccessData->ne - 1)) //OC151008 //commented-out

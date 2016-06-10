@@ -1,4 +1,5 @@
 *.pyc
+.pydevproject
 ext_lib
 env
 *.pyo

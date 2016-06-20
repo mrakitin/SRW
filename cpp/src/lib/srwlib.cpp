@@ -530,6 +530,11 @@ EXP int CALL srwlCalcPowDenSR(SRWLStokes* pStokes, SRWLPartBeam* pElBeam, SRWLPr
 
 EXP int CALL srwlCalcIntFromElecField(char* pInt, SRWLWfr* pWfr, char polar, char intType, char depType, double e, double x, double y)
 {
+
+	double start;
+	get_walltime (&start);
+
+
 	if((pWfr == 0) || (pInt == 0)) return SRWL_INCORRECT_PARAM_FOR_INT_EXTR;
 
 	try 
@@ -545,8 +550,11 @@ EXP int CALL srwlCalcIntFromElecField(char* pInt, SRWLWfr* pWfr, char polar, cha
 		else if(intType == 3) intType = 5;
 		else if(intType == 4) intType = 2;
 		else if(intType == 5) intType = 3;
+		srwlPrintTime(":srwlCalcIntFromElecField : before ExtractRadiation",&start);
 
 		radGenManip.ExtractRadiation((int)polar, (int)intType, (int)depType, wfr.Pres, e, x, y, pInt);
+		srwlPrintTime(":srwlCalcIntFromElecField : ExtractRadiation",&start);
+
 		//wfr.OutSRWRadPtrs(*pWfr); //not necessary?
 		UtiWarnCheck();
 	}
@@ -615,6 +623,10 @@ EXP int CALL srwlResizeElecField(SRWLWfr* pWfr, char type, double* par)
 
 EXP int CALL srwlSetRepresElecField(SRWLWfr* pWfr, char repr)
 {
+	double start;
+	get_walltime (&start);
+
+
 	if(pWfr == 0) return SRWL_INCORRECT_PARAM_FOR_CHANGE_REP;
 	
 	char reprCoordOrAng=0, reprFreqOrTime=0;
@@ -627,8 +639,10 @@ EXP int CALL srwlSetRepresElecField(SRWLWfr* pWfr, char repr)
 		srTSRWRadStructAccessData wfr(pWfr);
 
 		int locErNo = 0;
+		srwlPrintTime(":srwlSetRepresElecField : before fft",&start);
 		if(reprCoordOrAng) locErNo = wfr.SetRepresCA(reprCoordOrAng); //set Coordinate or Angular representation
 		else if(reprFreqOrTime) locErNo = wfr.SetRepresFT(reprFreqOrTime); //set Frequency or Time representation
+		srwlPrintTime(":srwlSetRepresElecField : wfr.SetRepresFT",&start);
 		if(locErNo) return locErNo;
 
 		wfr.OutSRWRadPtrs(*pWfr);
@@ -979,7 +993,7 @@ EXP void CALL get_walltime(double* wcTime) {
 }
 
 //-------------------------------------------------------------------------
-EXP void CALL srwlPrintTime(char* str, double* start){
+EXP void CALL srwlPrintTime(const char* str, double* start){
 	double end;
 	get_walltime (&end);
 	double dif= end-*start;

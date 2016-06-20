@@ -3901,16 +3901,26 @@ static PyObject* srwlpy_ResizeElecField(PyObject *self, PyObject *args)
  ***************************************************************************/
 static PyObject* srwlpy_SetRepresElecField(PyObject *self, PyObject *args)
 {
+
+	double start;
+	get_walltime (&start);
+
 	PyObject *oWfr=0, *oRepr;
 	vector<Py_buffer> vBuf;
 	SRWLWfr wfr;
 
 	try
 	{
+		srwlPrintTime(":srwlpy_SetRepresElecField : begin",&start);
+
 		if(!PyArg_ParseTuple(args, "OO:SetRepresElecField", &oWfr, &oRepr)) throw strEr_BadArg_SetRepresElecField;
+
+		srwlPrintTime(":srwlpy_SetRepresElecField : PyArg_ParseTuple",&start);
 		if((oWfr == 0) || (oRepr == 0)) throw strEr_BadArg_SetRepresElecField;
 
 		ParseSructSRWLWfr(&wfr, oWfr, &vBuf, gmWfrPyPtr);
+
+		srwlPrintTime(":srwlpy_SetRepresElecField : ParseSructSRWLWfr",&start);
 
 		//PyObject *o_str = PyUnicode_AsUTF8String(oRepr);
 		//if(!PyBytes_Check(o_str)) throw strEr_BadArg_SetRepresElecField;
@@ -3920,7 +3930,9 @@ static PyObject* srwlpy_SetRepresElecField(PyObject *self, PyObject *args)
 		CopyPyStringToC(oRepr, cRepr, 1);
 
 		ProcRes(srwlSetRepresElecField(&wfr, *cRepr));
+		srwlPrintTime(":srwlpy_SetRepresElecField : srwlSetRepresElecField",&start);
 		UpdatePyWfr(oWfr, &wfr);
+		srwlPrintTime(":srwlpy_SetRepresElecField : UpdatePyWfr",&start);
 	}
 	catch(const char* erText) 
 	{
@@ -3932,7 +3944,10 @@ static PyObject* srwlpy_SetRepresElecField(PyObject *self, PyObject *args)
 	ReleasePyBuffers(vBuf);
 	EraseElementFromMap(&wfr, gmWfrPyPtr);
 
+	srwlPrintTime(":srwlpy_SetRepresElecField : EraseElementFromMap",&start);
+
 	if(oWfr) Py_XINCREF(oWfr);
+	srwlPrintTime(":srwlpy_SetRepresElecField : Py_XINCREF",&start);
 	return oWfr;
 }
 

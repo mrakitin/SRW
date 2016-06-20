@@ -8,3 +8,5 @@ env
 *.so
 .cproject
 .project
+build_all_forsimex
+copy_source

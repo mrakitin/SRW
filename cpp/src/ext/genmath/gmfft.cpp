@@ -13,6 +13,9 @@
 
 #include "gmfft.h"
 
+#include "srwlib.h"
+
+#include "omp.h"
 //*************************************************************************
 
 long CGenMathFFT::GoodNumbers[] = {
@@ -318,6 +321,10 @@ int CGenMathFFT2D::Make2DFFT(CGenMathFFT2DInfo& FFT2DInfo,fftwnd_plan* Precreate
 //Backward FFT: Int f(qx)*exp(i*2*Pi*qx*x)dqx
 int CGenMathFFT1D::Make1DFFT(CGenMathFFT1DInfo& FFT1DInfo)
 {// Assumes Nx, Ny even !
+
+	double start;
+	get_walltime (&start);
+
 	const double RelShiftTol = 1.E-06;
 
 	SetupLimitsTr(FFT1DInfo);
@@ -355,6 +362,8 @@ int CGenMathFFT1D::Make1DFFT(CGenMathFFT1DInfo& FFT1DInfo)
 		TreatShift(DataToFFT, FFT1DInfo.HowMany);
 	}
 
+	srwlPrintTime("::Make1DFFT : before fft",&start);
+	
 	if(FFT1DInfo.Dir > 0)
 	{
 		int flags = FFTW_ESTIMATE;
@@ -362,12 +371,29 @@ int CGenMathFFT1D::Make1DFFT(CGenMathFFT1DInfo& FFT1DInfo)
 		{
 			flags |= FFTW_IN_PLACE;
 		}
+
 		Plan1DFFT = fftw_create_plan(Nx, FFTW_FORWARD, flags);
+		srwlPrintTime("::Make1DFFT : fft create plan dir>0",&start);
 		if(Plan1DFFT == 0) return ERROR_IN_FFT;
 
-		fftw(Plan1DFFT, FFT1DInfo.HowMany, DataToFFT, 1, Nx, OutDataFFT, 1, Nx);
+// SY: split one call into many (for OpenMP)
+//		fftw(Plan1DFFT, FFT1DInfo.HowMany, DataToFFT, 1, Nx, OutDataFFT, 1, Nx);
+		#pragma omp parallel for if (omp_get_num_threads()==1) // to avoid nested multi-threading (just in case)
+		for (int i=0;i<FFT1DInfo.HowMany;i++)
+		{
+// SY: do not use OutDataFFT as scratch space if in-place
+			if (DataToFFT == OutDataFFT)
+				fftw_one(Plan1DFFT, DataToFFT+i*Nx, 0);
+			else
+				fftw_one(Plan1DFFT, DataToFFT + i*Nx, OutDataFFT + i*Nx);
+		}
+
+		srwlPrintTime("::Make1DFFT : fft  dir>0",&start);
 		RepairSignAfter1DFFT(OutDataFFT, FFT1DInfo.HowMany);
+		srwlPrintTime("::Make1DFFT : repair dir>0",&start);
 		RotateDataAfter1DFFT(OutDataFFT, FFT1DInfo.HowMany);
+		srwlPrintTime("::Make1DFFT : rotate dir>0",&start);
+
 	}
 	else
 	{
@@ -376,28 +402,49 @@ int CGenMathFFT1D::Make1DFFT(CGenMathFFT1DInfo& FFT1DInfo)
 		{
 			flags |= FFTW_IN_PLACE;
 		}
+
 		Plan1DFFT = fftw_create_plan(Nx, FFTW_BACKWARD, flags);
+		srwlPrintTime("::Make1DFFT : fft create plan dir<0",&start);
+
 		if(Plan1DFFT == 0) return ERROR_IN_FFT;
 
 		RotateDataAfter1DFFT(DataToFFT, FFT1DInfo.HowMany);
+		srwlPrintTime("::Make1DFFT : rotate dir<0",&start);
+
 		RepairSignAfter1DFFT(DataToFFT, FFT1DInfo.HowMany);
-		fftw(Plan1DFFT, FFT1DInfo.HowMany, DataToFFT, 1, Nx, OutDataFFT, 1, Nx);
+		srwlPrintTime("::Make1DFFT : repair dir<0",&start);
+//		fftw(Plan1DFFT, FFT1DInfo.HowMany, DataToFFT, 1, Nx, OutDataFFT, 1, Nx);
+		#pragma omp parallel for if (omp_get_num_threads()==1) // to avoid nested multi-threading (just in case)
+		for (int i=0;i<FFT1DInfo.HowMany;i++)
+		{
+			if (DataToFFT == OutDataFFT)
+				fftw_one(Plan1DFFT, DataToFFT+i*Nx, 0);
+			else
+				fftw_one(Plan1DFFT, DataToFFT + i*Nx, OutDataFFT + i*Nx);
+
+		}
+
+		srwlPrintTime("::Make1DFFT : fft  dir<0",&start);
+
 	}
 	//double Mult = FFT1DInfo.xStep;
 	double Mult = FFT1DInfo.xStep*FFT1DInfo.MultExtra;
 	NormalizeDataAfter1DFFT(OutDataFFT, FFT1DInfo.HowMany, Mult);
+	srwlPrintTime("::Make1DFFT : NormalizeDataAfter1DFFT",&start);
 
 	if(NeedsShiftAfterX)
 	{
 		FillArrayShift(t0SignMult*x0_After, FFT1DInfo.xStepTr);
 		TreatShift(OutDataFFT, FFT1DInfo.HowMany);
 	}
+	srwlPrintTime("::Make1DFFT : TreatShift",&start);
 
 	if(FFT1DInfo.TreatSharpEdges)
 	{
 		int result = ProcessSharpEdges(FFT1DInfo);
 		if(result) return result;
 	}
+	srwlPrintTime("::Make1DFFT : ProcessSharpEdges",&start);
 
 	//OC_NERSC: to comment-out the following line for NERSC (to avoid crash with "python-mpi")
 	fftw_destroy_plan(Plan1DFFT);
@@ -406,6 +453,10 @@ int CGenMathFFT1D::Make1DFFT(CGenMathFFT1DInfo& FFT1DInfo)
 	{
 		delete[] m_ArrayShiftX; m_ArrayShiftX = 0;
 	}
+
+	srwlPrintTime("::Make1DFFT : after fft ",&start);
+
+
 	return 0;
 }
 

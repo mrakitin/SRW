@@ -35,6 +35,8 @@
 #define ERROR_IN_FFT 40 + 10000
 #endif
 
+#include "omp.h"
+
 //*************************************************************************
 
 class CGenMathFFT //{
@@ -402,7 +404,7 @@ public:
 
 	void RepairSignAfter1DFFT(FFTW_COMPLEX* pAfterFFT, long HowMany)
 	{// Assumes Nx even !
-		FFTW_COMPLEX *t = pAfterFFT;
+/*		FFTW_COMPLEX *t = pAfterFFT;
 		int s = 1;
 		for(long ix=0; ix<Nx; ix++)
 		{
@@ -417,15 +419,32 @@ public:
 			}
 			t++; s = -s;
 		}
+*/
+		// SY: optimized, adopt for OpenMP
+		#pragma omp parallel for
+		for(long ix=1; ix<Nx; ix+=2)
+		{
+			FFTW_COMPLEX *t = pAfterFFT + ix;
+			FFTW_COMPLEX *tMany = t;
+			for(long k=0; k<HowMany; k++)
+			{
+				tMany->re = -tMany->re; tMany->im = -tMany->im;
+				tMany += Nx;
+			}
+		}
+
+
 	}
 
 	void RotateDataAfter1DFFT(FFTW_COMPLEX* pAfterFFT, long HowMany)
 	{// Assumes Nx even !
-		FFTW_COMPLEX *t1 = pAfterFFT, *t2 = pAfterFFT + HalfNx;
-		FFTW_COMPLEX Buf;
+//		FFTW_COMPLEX *t1 = pAfterFFT, *t2 = pAfterFFT + HalfNx;
+		#pragma omp parallel for
 		for(long ix=0; ix<HalfNx; ix++)
 		{
-			FFTW_COMPLEX *t1Many = t1++, *t2Many = t2++;
+			FFTW_COMPLEX *t1Many = pAfterFFT + ix;
+			FFTW_COMPLEX *t2Many = pAfterFFT + HalfNx + ix;
+			FFTW_COMPLEX Buf;
 			for(long k=0; k<HowMany; k++)
 			{
 				Buf = *t1Many; *t1Many = *t2Many; *t2Many = Buf;
@@ -436,10 +455,10 @@ public:
 
 	void NormalizeDataAfter1DFFT(FFTW_COMPLEX* pAfterFFT, long HowMany, double Mult)
 	{// Assumes Nx even !
-		FFTW_COMPLEX *t = pAfterFFT;
+		#pragma omp parallel for
 		for(long ix=0; ix<Nx; ix++)
 		{
-			FFTW_COMPLEX *tMany = t++;
+			FFTW_COMPLEX *tMany = pAfterFFT + ix;
 			for(long k=0; k<HowMany; k++)
 			{
 				tMany->re *= (FFTW_REAL)Mult; tMany->im *= (FFTW_REAL)Mult;

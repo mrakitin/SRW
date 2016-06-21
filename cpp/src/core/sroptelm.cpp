@@ -2297,7 +2297,7 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 #endif
 #if defined(SRWLIB_STATIC) || defined(SRWLIB_SHARED) //OC161115
 				if(result = NewSRWRadStructAccessData.ModifyWfrNeNxNz(0, true)) return result;
-				srwlPrintTime(":RadResizeGen: TreatPolarizSepar-NewSRWRadStructAccessData",&start);
+				srwlPrintTime(":RadResizeGen: TreatPolarizSepar-ModifyWfrNeNxNz",&start);
 				//OCTEST
 				//SRWRadStructAccessData.pBaseRadX = NewSRWRadStructAccessData.pBaseRadXaux;
 				//SRWRadStructAccessData.pBaseRadZ = NewSRWRadStructAccessData.pBaseRadZaux;

@@ -96,6 +96,10 @@ for i, node in enumerate(data):
             data[j].listchilds.append(node)
 #            print 'append ', node.child, 'to ',parent            
             break
+        if (node.type==1 and data[j].type==2):
+            data[j].listchilds.append(node)
+#            print 'append ', node.child, 'to ',parent            
+            break            
 for node in data:
         if (node.child in times):
             times[node.child]+=float(node.time)

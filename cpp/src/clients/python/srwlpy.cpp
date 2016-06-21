@@ -3225,12 +3225,19 @@ void DeallocOptCntArrays(SRWLOptC* pOptCnt)
  ***************************************************************************/
 int ModifySRWLWfr(int action, SRWLWfr* pWfr, char pol)
 {
+
+	double start;
+	get_walltime (&start);
+
+
 	if(pWfr == 0) return -1; //returning non-zero means Wfr modification did not succeed; no throwing allowed here
 	//if((action < 0) || (action > 2)) return -1;
 	if(action < 0) return -1; //OC151115
 
 	map<SRWLWfr*, AuxStructPyObjectPtrs>::iterator it = gmWfrPyPtr.find(pWfr);
 	//map<SRWLWfr*, AuxStructPyObjectPtrs>::const_iterator it = gmWfrPyPtr.find(pWfr);
+
+	srwlPrintTime(":ModifySRWLWfr : find",&start);
 
 	if(it == gmWfrPyPtr.end()) return -1;
 	PyObject *oWfr = it->second.o_wfr;
@@ -3302,8 +3309,14 @@ int ModifySRWLWfr(int action, SRWLWfr* pWfr, char pol)
 	if(oFunc == 0) return -1; //OC151115
 	if(!PyCallable_Check(oFunc)) return -1;
 
+	srwlPrintTime("::ModifySRWLWfr : before PyObject_CallObject",&start);
+
+
+
 	PyObject *res = PyObject_CallObject(oFunc, argList); //re-allocate in Py
 	Py_DECREF(argList);
+
+	srwlPrintTime("::ModifySRWLWfr : PyObject_CallObject",&start);
 
 	Py_DECREF(oFunc);
 	if(res == 0) return -1;
@@ -3328,6 +3341,9 @@ int ModifySRWLWfr(int action, SRWLWfr* pWfr, char pol)
 	if((int)it->second.pv_buf->size() > sizeVectBuf) it->second.pbEx = (*it->second.pv_buf)[sizeVectBuf];
 	Py_DECREF(o_tmp);
 
+	srwlPrintTime("::ModifySRWLWfr : arEx",&start);
+
+
 	o_tmp = PyObject_GetAttrString(oWfr, "arEy");
 	if(o_tmp == 0) return -1;
 	//if(PyObject_CheckBuffer(o_tmp))
@@ -3342,6 +3358,9 @@ int ModifySRWLWfr(int action, SRWLWfr* pWfr, char pol)
 	if(!(pWfr->arEy = GetPyArrayBuf(o_tmp, it->second.pv_buf, 0))) return -1;
 	if((int)it->second.pv_buf->size() > sizeVectBuf) it->second.pbEy = (*it->second.pv_buf)[sizeVectBuf];
 	Py_DECREF(o_tmp);
+
+	srwlPrintTime("::ModifySRWLWfr : arEy",&start);
+
 
 	pWfr->arExAux = 0; //OC151115
 	if(PyObject_HasAttrString(oWfr, "arExAux"))
@@ -3358,6 +3377,9 @@ int ModifySRWLWfr(int action, SRWLWfr* pWfr, char pol)
 			}
 		}
 	}
+
+	srwlPrintTime("::ModifySRWLWfr : arExAux",&start);
+
 	//if(pWfr->arExAux == 0)
 	//{//This creates problems
 	//	if((action == 20) && ExNeeded) PyBuffer_Release(&(it->second.pbExAux));
@@ -3378,6 +3400,9 @@ int ModifySRWLWfr(int action, SRWLWfr* pWfr, char pol)
 			}
 		}
 	}
+
+	srwlPrintTime("::ModifySRWLWfr : arEyAux",&start);
+
 	//if(pWfr->arEyAux == 0)
 	//{//This creates problems
 	//	if((action == 20) && EyNeeded) PyBuffer_Release(&(it->second.pbEyAux));
@@ -3392,11 +3417,15 @@ int ModifySRWLWfr(int action, SRWLWfr* pWfr, char pol)
 	//	pWfr->arMomX = (double*)pb_tmp.buf;
 	//	it->second.pbMomX = pb_tmp;
 	//}
+
+
 	sizeVectBuf = 0;
 	if(it->second.pv_buf != 0) sizeVectBuf = (int)it->second.pv_buf->size();
 	if(!(pWfr->arMomX = (double*)GetPyArrayBuf(o_tmp, it->second.pv_buf, 0))) return -1;
 	if((int)it->second.pv_buf->size() > sizeVectBuf) it->second.pbMomX = (*it->second.pv_buf)[sizeVectBuf];
 	Py_DECREF(o_tmp);
+
+	srwlPrintTime("::ModifySRWLWfr : arMomX",&start);
 
 	o_tmp = PyObject_GetAttrString(oWfr, "arMomY");
 	if(o_tmp == 0) return -1;
@@ -3412,6 +3441,9 @@ int ModifySRWLWfr(int action, SRWLWfr* pWfr, char pol)
 	if(!(pWfr->arMomY = (double*)GetPyArrayBuf(o_tmp, it->second.pv_buf, 0))) return -1;
 	if((int)it->second.pv_buf->size() > sizeVectBuf) it->second.pbMomY = (*it->second.pv_buf)[sizeVectBuf];
 	Py_DECREF(o_tmp);
+
+	srwlPrintTime("::ModifySRWLWfr : arMomY",&start);
+
 	return 0;
 }
 

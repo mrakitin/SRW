@@ -994,6 +994,7 @@ EXP void CALL get_walltime(double* wcTime) {
 
 //-------------------------------------------------------------------------
 EXP void CALL srwlPrintTime(const char* str, double* start){
+#ifdef MANUAL_PROFILING
 	double end;
 	get_walltime (&end);
 	double dif= end-*start;
@@ -1003,4 +1004,5 @@ EXP void CALL srwlPrintTime(const char* str, double* start){
 		fflush(stdout);
 	}
 	*start=end;
+#endif
 }

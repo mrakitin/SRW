@@ -123,9 +123,6 @@ public:
 
 	int PropagateRadiation(srTSRWRadStructAccessData* pRadAccessData, srTParPrecWfrPropag& ParPrecWfrPropag, srTRadResizeVect& ResBeforeAndAfterVect) //virtual in srTGenOptElem
 	{
-
-		printf("::::PropagateRadiation -> Mirror\n");
-
 		m_ParPrecWfrPropag = ParPrecWfrPropag; //store for use in a composite prapagator (through drif space, etc.)
 		
 		if(m_isGrating)

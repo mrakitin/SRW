@@ -91,8 +91,6 @@ public:
 		
 		ChooseLocalPropMode(pRadAccessData, ParPrecWfrPropag);
 
-		printf("::::PropagateRadiation -> Drift %d \n",LocalPropMode);
-
 		if(LocalPropMode == -1)
 		{
 			double GoodNx = pRadAccessData->nx*pRadAccessData->UnderSamplingX;

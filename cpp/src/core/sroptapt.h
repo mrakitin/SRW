@@ -34,9 +34,6 @@ public:
 	//int PropagateRadiation(srTSRWRadStructAccessData* pRadAccessData, int MethNo, srTRadResizeVect& ResBeforeAndAfterVect)
 	int PropagateRadiation(srTSRWRadStructAccessData* pRadAccessData, srTParPrecWfrPropag& ParPrecWfrPropag, srTRadResizeVect& ResBeforeAndAfterVect)
 	{
-
-		printf("::::PropagateRadiation -> Aperture %d\n",ParPrecWfrPropag.MethNo);
-
 		char &MethNo = ParPrecWfrPropag.MethNo;
 
 		if(MethNo == 0) return PropagateRadiationMeth_0(pRadAccessData);

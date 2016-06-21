@@ -2252,20 +2252,25 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 			
 			tBaseRadX = NewSRWRadStructAccessData.pBaseRadX;
 			tBaseRadZ = NewSRWRadStructAccessData.pBaseRadZ;
+
+			#pragma omp parallel for if (omp_get_num_threads()==1) // to avoid nested multi-threading
 			for(long j=0; j<TotAmOfNewData; j++)
 			{
-				*(tBaseRadX++) = 0.; *(tBaseRadZ++) = 0.; 
+				tBaseRadX[j] = 0.;
+				tBaseRadZ[j] = 0.;
 			}
 			
 			SRWRadStructAccessData.pBaseRadX = OldRadXCopy;
 			SRWRadStructAccessData.pBaseRadZ = OldRadZCopy;
 			
+			srwlPrintTime(":RadResizeGen: copydata",&start);
+
 			if(result = RadResizeCore(SRWRadStructAccessData, NewSRWRadStructAccessData, RadResizeStruct)) return result;
 			
 			if(OldRadXCopy != 0) delete[] OldRadXCopy;
 			if(OldRadZCopy != 0) delete[] OldRadZCopy;
 
-			srwlPrintTime(":RadResizeGen: RadResizeCore",&start);
+			srwlPrintTime(":RadResizeGen: RadResizeCore 1",&start);
 		}
 		else
 		{
@@ -2305,9 +2310,13 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 			}
 			
 			float *tRadX = NewSRWRadStructAccessData.pBaseRadX, *tRadZ = NewSRWRadStructAccessData.pBaseRadZ;
+
+
+			#pragma omp parallel for if (omp_get_num_threads()==1) // to avoid nested multi-threading
 			for(long j=0; j<TotAmOfNewData; j++)
 			{
-				*(tRadX++) = 0.; *(tRadZ++) = 0.; 
+				tRadX[j] = 0.;
+				tRadZ[j] = 0.;
 			}
 
 			srwlPrintTime(":RadResizeGen: TreatPolarizSepar-PrepareStructs",&start);
@@ -2315,7 +2324,7 @@ int srTGenOptElem::RadResizeGen(srTSRWRadStructAccessData& SRWRadStructAccessDat
 
 			if(result = RadResizeCore(SRWRadStructAccessData, NewSRWRadStructAccessData, RadResizeStruct)) return result;
 
-			srwlPrintTime(":RadResizeGen: RadResizeCore",&start);
+			srwlPrintTime(":RadResizeGen: RadResizeCore 2",&start);
 
 
 			if(NewSRWRadStructAccessData.BaseRadWasEmulated) 

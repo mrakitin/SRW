@@ -1,4 +1,7 @@
-﻿# This Makefile is to compile SRW with optional compilation of FFTW-2.1.5.
+﻿.PHONY: all clean core fftw nofftw pylib test
+
+
+# This Makefile is to compile SRW with optional compilation of FFTW-2.1.5.
 #
 # The following options are available:
 # - `make all` - will compile FFTW, C++ core and Python lib;
@@ -9,7 +12,7 @@
 #
 # Updated by Maksim Rakitin (NSLS-II, BNL) on May 2, 2016.
 
-root_dir = $(realpath .)
+root_dir = $(CURDIR)
 env_dir = $(root_dir)/env
 ext_dir = $(root_dir)/ext_lib
 gcc_dir = $(root_dir)/cpp/gcc
@@ -40,7 +43,7 @@ fftw:
 	cd $(fftw_dir); \
 	./configure --enable-float --with-pic; \
 	sed 's/^CFLAGS = /CFLAGS = -fPIC /' -i Makefile; \
-	make && cp fftw/.libs/libfftw.a $(ext_dir); \
+	make -j8 && cp fftw/.libs/libfftw.a $(ext_dir); \
 	cd $(root_dir); \
 	rm -rf $(ext_dir)/$(fftw_dir);
 
@@ -83,8 +86,6 @@ test:
 	fi;
 
 clean:
-	rm -f $(ext_dir)/libfftw.a $(gcc_dir)/libsrw.a $(gcc_dir)/srwlpy.so; \
+	rm -f $(ext_dir)/libfftw.a $(gcc_dir)/libsrw.a $(gcc_dir)/srwlpy*.so; \
 	rm -rf $(ext_dir)/$(fftw_dir)/ py/build/;
-	if [ -d $(root_dir)/.git ]; then git checkout $(examples_dir)/srwlpy.so; fi;
-
-.PHONY: all clean core fftw nofftw pylib test
+	#if [ -d $(root_dir)/.git ]; then git checkout $(examples_dir)/srwlpy*.so; fi;

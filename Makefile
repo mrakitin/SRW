@@ -9,7 +9,7 @@
 #
 # Updated by Maksim Rakitin (NSLS-II, BNL) on May 2, 2016.
 
-root_dir = $(realpath .)
+root_dir = $(realpath)
 env_dir = $(root_dir)/env
 ext_dir = $(root_dir)/ext_lib
 gcc_dir = $(root_dir)/cpp/gcc

@@ -33,7 +33,7 @@ PRG=	libsrw.a
 lib:	$(OBJ)
 	ar -cvq $(PRG) *.o
 	#cp $(PRG) $(LIB_DIR)/
-	#rm -f *.o
+	rm -f *.o
 
 %.o: $(SRW_SRC_LIB_DIR)/%.cpp
 	$(CC) $(CFLAGS) -c $<  

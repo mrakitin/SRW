@@ -8,7 +8,8 @@
  * All Rights Reserved
  *
  * @author O.Chubar, P.Elleaume
- * @version 1.0
+ * @author S. Yakubov (E-XFEL) - noticed issue and suggested fix in FFT1D
+ * @version 1.1
  ***************************************************************************/
 
 #include "gmfft.h"
@@ -181,7 +182,8 @@ void CGenMathFFT::NextCorrectNumberForFFT(long& n)
 
 int CGenMathFFT1D::Make1DFFT_InPlace(CGenMathFFT1DInfo& FFT1DInfo)
 {
-	long TotAmOfPo = (FFT1DInfo.Nx << 1)*FFT1DInfo.HowMany;
+	//long TotAmOfPo = (FFT1DInfo.Nx << 1)*FFT1DInfo.HowMany;
+	long long TotAmOfPo = ((long long)(FFT1DInfo.Nx << 1))*((long long)FFT1DInfo.HowMany);
 	float* AuxDataCont = new float[TotAmOfPo];
 	if(AuxDataCont == 0) return MEMORY_ALLOCATION_FAILURE;
 	FFT1DInfo.pOutData = AuxDataCont;
@@ -355,6 +357,21 @@ int CGenMathFFT1D::Make1DFFT(CGenMathFFT1DInfo& FFT1DInfo)
 	FFTW_COMPLEX *DataToFFT = (FFTW_COMPLEX*)(FFT1DInfo.pInData);
 	FFTW_COMPLEX *OutDataFFT = (FFTW_COMPLEX*)(FFT1DInfo.pOutData);
 
+	FFTW_COMPLEX *pOutDataFFT = OutDataFFT; //OC03092016 to be used solely in fftw call
+/**
+	Pointed-out by Sergey Yakubov (E-XFEL).
+	From FFTW 2.1.5 docs:
+	void fftw(fftw_plan plan, int howmany,
+          fftw_complex *in, int istride, int idist,
+          fftw_complex *out, int ostride, int odist);
+	...
+	out, ostride and odist describe the output array(s). The format is the same as for the input array. 
+	In-place transforms:  If the plan specifies an in-place transform, ostride and odist are always ignored. 
+	If out is NULL, out is ignored, too. Otherwise, out is interpreted as a pointer to an array of n complex numbers, 
+	that FFTW will use as temporary space to perform the in-place computation. out is used as scratch space and its contents destroyed. 
+	In this case, out must be an ordinary array whose elements are contiguous in memory (no striding). 
+**/
+
 	char t0SignMult = (FFT1DInfo.Dir > 0)? -1 : 1;
 	if(NeedsShiftBeforeX) 
 	{
@@ -377,7 +394,7 @@ int CGenMathFFT1D::Make1DFFT(CGenMathFFT1DInfo& FFT1DInfo)
 		if(Plan1DFFT == 0) return ERROR_IN_FFT;
 
 // SY: split one call into many (for OpenMP)
-//		fftw(Plan1DFFT, FFT1DInfo.HowMany, DataToFFT, 1, Nx, OutDataFFT, 1, Nx);
+//		fftw(Plan1DFFT, FFT1DInfo.HowMany, DataToFFT, 1, Nx, pOutDataFFT, 1, Nx); //OC03092016
 		#pragma omp parallel for if (omp_get_num_threads()==1) // to avoid nested multi-threading (just in case)
 		for (int i=0;i<FFT1DInfo.HowMany;i++)
 		{
@@ -413,7 +430,7 @@ int CGenMathFFT1D::Make1DFFT(CGenMathFFT1DInfo& FFT1DInfo)
 
 		RepairSignAfter1DFFT(DataToFFT, FFT1DInfo.HowMany);
 		srwlPrintTime("::Make1DFFT : repair dir<0",&start);
-//		fftw(Plan1DFFT, FFT1DInfo.HowMany, DataToFFT, 1, Nx, OutDataFFT, 1, Nx);
+		//fftw(Plan1DFFT, FFT1DInfo.HowMany, DataToFFT, 1, Nx, pOutDataFFT, 1, Nx); //OC03092016
 		#pragma omp parallel for if (omp_get_num_threads()==1) // to avoid nested multi-threading (just in case)
 		for (int i=0;i<FFT1DInfo.HowMany;i++)
 		{
@@ -425,7 +442,6 @@ int CGenMathFFT1D::Make1DFFT(CGenMathFFT1DInfo& FFT1DInfo)
 		}
 
 		srwlPrintTime("::Make1DFFT : fft  dir<0",&start);
-
 	}
 	//double Mult = FFT1DInfo.xStep;
 	double Mult = FFT1DInfo.xStep*FFT1DInfo.MultExtra;

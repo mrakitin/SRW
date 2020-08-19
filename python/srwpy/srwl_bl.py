@@ -823,9 +823,11 @@ class SRWLBeamline(object):
         :param _ctst: initial time (ct) for trajectory calculation 
         :param _ctfi: final time (ct) for trajectory calculation
         :param _np: number of points for trajectory calculation
-        :param _mag_type: "type" of magnetic field to use: 
+        :param _mag_type: "type" of magnetic field to use:
+
             1- "Approximate", referenced by self.mag_approx; 
-            2- "Accurate" (tabulated), referenced by self.mag; 
+            2- "Accurate" (tabulated), referenced by self.mag;
+
         :param _fname: name of file to save the resulting data to (for the moment, in ASCII format)
         :return: trajectory structure
         """
@@ -873,7 +875,8 @@ class SRWLBeamline(object):
     def calc_int_from_wfr(self, _wfr, _pol=6, _int_type=0, _det=None, _fname='', _pr=True): #OC06042018
         """Calculates intensity from electric field and saving it to a file
         :param _wfr: electric field wavefront (instance of SRWLWfr)
-        :param _pol: polarization component to extract: 
+        :param _pol: polarization component to extract:
+
             0- Linear Horizontal; 
             1- Linear Vertical; 
             2- Linear 45 degrees; 
@@ -881,7 +884,9 @@ class SRWLBeamline(object):
             4- Circular Right; 
             5- Circular Left; 
             6- Total
+
         :param _int_type: "type" of a characteristic to be extracted:
+
            -1- No Intensity / Electric Field components extraction is necessary (only Wavefront will be calculated)
             0- "Single-Electron" Intensity; 
             1- "Multi-Electron" Intensity; 
@@ -891,6 +896,7 @@ class SRWLBeamline(object):
             5- Re(E): Real part of Single-Electron Electric Field;
             6- Im(E): Imaginary part of Single-Electron Electric Field;
             7- "Single-Electron" Intensity, integrated over Time or Photon Energy (i.e. Fluence);
+
         :param _det: detector (instance of SRWLDet)
         :param _fname: name of file to save the resulting data to (for the moment, in ASCII format)
         :param _pr: switch specifying if printing tracing the execution should be done or not
@@ -932,7 +938,8 @@ class SRWLBeamline(object):
         :param _samp_fact: sampling factor for adjusting nx, ny (effective if > 0)
         :param _meth: SR calculation method: 0- "manual", 1- "auto-undulator", 2- "auto-wiggler"
         :param _rel_prec: relative precision
-        :param _pol: polarization component to extract: 
+        :param _pol: polarization component to extract:
+
             0- Linear Horizontal; 
             1- Linear Vertical; 
             2- Linear 45 degrees; 
@@ -940,7 +947,9 @@ class SRWLBeamline(object):
             4- Circular Right; 
             5- Circular Left; 
             6- Total
+
         :param _int_type: "type" of a characteristic to be extracted:
+
            -1- No Intensity / Electric Field components extraction is necessary (only Wavefront will be calculated)
             0- "Single-Electron" Intensity; 
             1- "Multi-Electron" Intensity; 
@@ -950,9 +959,12 @@ class SRWLBeamline(object):
             5- Re(E): Real part of Single-Electron Electric Field;
             6- Im(E): Imaginary part of Single-Electron Electric Field;
             7- "Single-Electron" Intensity, integrated over Time or Photon Energy (i.e. Fluence);
-        :param _mag_type: "type" of magnetic field to use: 
+
+        :param _mag_type: "type" of magnetic field to use:
+
             1- "Approximate", referenced by self.mag_approx; 
-            2- "Accurate" (tabulated), referenced by self.mag; 
+            2- "Accurate" (tabulated), referenced by self.mag;
+
         :param _fname: name of file to save the resulting data to (for the moment, in ASCII format)
         :param _det: detector (instance of SRWLDet)
         :param _zi: initial lonngitudinal position [m] of electron trajectory for SR calculation
@@ -1053,7 +1065,8 @@ class SRWLBeamline(object):
         """Calculates Gaussian beam wavefront (electric field) and intensity
         :param _mesh: mesh on which the intensity has to be calculated (SRWLRadMesh instance)
         :param _samp_fact: sampling factor for adjusting nx, ny (effective if > 0)
-        :param _pol: polarization component to extract: 
+        :param _pol: polarization component to extract:
+
             0- Linear Horizontal; 
             1- Linear Vertical; 
             2- Linear 45 degrees; 
@@ -1061,7 +1074,9 @@ class SRWLBeamline(object):
             4- Circular Right; 
             5- Circular Left; 
             6- Total
+
         :param _int_type: "type" of a characteristic to be extracted:
+
            -1- No Intensity / Electric Field components extraction is necessary (only Wavefront will be calculated)
             0- "Single-Electron" / Coherent Beam Intensity; 
             1- "Multi-Electron" / Partially-Coherent Beam Intensity; 
@@ -1071,6 +1086,7 @@ class SRWLBeamline(object):
             5- Re(E): Real part of Single-Electron / Coherent Beam Electric Field;
             6- Im(E): Imaginary part of Single-Electron / Coherent Beam Electric Field;
             7- "Single-Electron" / Coherent Beam Intensity, integrated over Time or Photon Energy (i.e. Fluence);
+
         :param _presFT: calculate electric field (and intensity) in time domain/representation (="t") or in frequency domain/representation (="f")
         :param _unitE: #electric field units: 0- arbitrary, 1- sqrt(Phot/s/0.1%bw/mm^2), 2- sqrt(J/eV/mm^2) or sqrt(W/mm^2), depending on representation (freq. or time)
         :param _fname: name of file to save the resulting data to (for the moment, in ASCII format)
@@ -1169,7 +1185,8 @@ class SRWLBeamline(object):
         """Calculates Spherical Wave electric field and intensity
         :param _mesh: mesh on which the intensity has to be calculated (SRWLRadMesh instance)
         :param _samp_fact: sampling factor for adjusting nx, ny (effective if > 0)
-        :param _pol: polarization component to extract: 
+        :param _pol: polarization component to extract:
+
             0- Linear Horizontal; 
             1- Linear Vertical; 
             2- Linear 45 degrees; 
@@ -1177,7 +1194,9 @@ class SRWLBeamline(object):
             4- Circular Right; 
             5- Circular Left; 
             6- Total
+
         :param _int_type: "type" of a characteristic to be extracted:
+
            -1- No Intensity / Electric Field components extraction is necessary (only Wavefront will be calculated)
             0- "Single-Electron" / Coherent Beam Intensity; 
             1- "Multi-Electron" / Partially-Coherent Beam Intensity; 
@@ -1187,6 +1206,7 @@ class SRWLBeamline(object):
             5- Re(E): Real part of Single-Electron / Coherent Beam Electric Field;
             6- Im(E): Imaginary part of Single-Electron / Coherent Beam Electric Field;
             7- "Single-Electron" / Coherent Beam Intensity, integrated over Time or Photon Energy (i.e. Fluence);
+
         :param _presFT: calculate electric field (and intensity) in time domain/representation (="t") or in frequency domain/representation (="f")
         :param _unitE: #electric field units: 0- arbitrary, 1- sqrt(Phot/s/0.1%bw/mm^2), 2- sqrt(J/eV/mm^2) or sqrt(W/mm^2), depending on representation (freq. or time)
         :param _fname: name of file to save the resulting data to (for the moment, in ASCII format)
@@ -1289,7 +1309,8 @@ class SRWLBeamline(object):
         :param _prec_long: longitudinal integration precision parameter
         :param _prec_azim: azimuthal integration precision parameter
         :param _type: calculate flux (=1) or flux per unit surface (=2)
-        :param _pol: polarization component to extract: 
+        :param _pol: polarization component to extract:
+
             0- Linear Horizontal; 
             1- Linear Vertical; 
             2- Linear 45 degrees; 
@@ -1297,6 +1318,7 @@ class SRWLBeamline(object):
             4- Circular Right; 
             5- Circular Left; 
             6- Total
+
         :param _fname: name of file to save the resulting data to (for the moment, in ASCII format)
         :return: 1D array with (C-aligned) resulting intensity data
         """
@@ -1365,7 +1387,8 @@ class SRWLBeamline(object):
         :param _n_save_per: periodicity of saving intermediate average Stokes data to file by master process
         :param _type: calculate flux (=1) or flux per unit surface (=2)
         :param _mag: magnetic field to be used for calculation of multi-e spectrum spectrum or intensity distribution: 1- approximate, 2- accurate
-        :param _pol: polarization component to extract: 
+        :param _pol: polarization component to extract:
+
             0- Linear Horizontal; 
             1- Linear Vertical; 
             2- Linear 45 degrees; 
@@ -1373,10 +1396,13 @@ class SRWLBeamline(object):
             4- Circular Right; 
             5- Circular Left; 
             6- Total
+
         :param _rand_meth: method for generation of pseudo-random numbers for e-beam phase-space integration:
+
             1- standard pseudo-random number generator
             2- Halton sequences
             3- LPtau sequences (to be implemented)
+
         :param _fname: name of file to save the resulting data to (for the moment, in ASCII format)
         :param _det: detector structure ensuring a given final mesh on which the calculated intensity (or other characteristic) will be interpolated
         :param _me_approx: multi-electron integration approximation method: 0- no approximation (use the standard 5D integration method), 1- integrate numerically only over e-beam energy spread and use convolution to treat transverse emittance
@@ -1430,9 +1456,11 @@ class SRWLBeamline(object):
         :param _meth: power density computation method (1- "near field", 2- "far field")
         :param _z_start: initial longitudinal position along electron trajectory of power density distribution (effective if _s_start < _s_fin)
         :param _z_fin: final longitudinal position along electron trajectory of power density distribution (effective if _s_start < _s_fin)
-        :param _mag_type: "type" of magnetic field to use: 
+        :param _mag_type: "type" of magnetic field to use:
+
             1- "Approximate", referenced by self.mag_approx; 
-            2- "Accurate" (tabulated), referenced by self.mag; 
+            2- "Accurate" (tabulated), referenced by self.mag;
+
         :param _fname: name of file to save the resulting data to
         :return: 1D array with (C-aligned) resulting power density data
         """
@@ -1714,7 +1742,8 @@ class SRWLBeamline(object):
         """Calculates single-electron (/ fully coherent) wavefront propagation
         :param _wfr: wavefront (instance of SRWLWfr) to be propagated (and modified in place!)
         :param _pres_ang: switch specifying whether the result of the propagation should be shown in angular presentation (1) or not (0)
-        :param _pol: polarization component to extract: 
+        :param _pol: polarization component to extract:
+
             0- Linear Horizontal; 
             1- Linear Vertical; 
             2- Linear 45 degrees; 
@@ -1722,7 +1751,9 @@ class SRWLBeamline(object):
             4- Circular Right; 
             5- Circular Left; 
             6- Total
+
         :param _int_type: "type" of a characteristic to be extracted:
+
            -1- No Intensity / Electric Field components extraction is necessary (only Wavefront will be calculated)
             0- "Single-Electron" Intensity; 
             1- "Multi-Electron" Intensity; 
@@ -1732,7 +1763,9 @@ class SRWLBeamline(object):
             5- Re(E): Real part of Single-Electron Electric Field;
             6- Im(E): Imaginary part of Single-Electron Electric Field;
             7- "Single-Electron" Intensity, integrated over Time or Photon Energy (i.e. Fluence);
+
         :param _dep_type: "type" of dependence to be extracted:
+
             0- vs e (photon energy or time);
             1- vs x (horizontal position or angle);
             2- vs y (vertical position or angle);
@@ -1859,26 +1892,32 @@ class SRWLBeamline(object):
         :param _sr_rel_prec: relative precision for SR Electric Field calculation (usually 0.01 is OK, smaller the more accurate)
         :param _in_wr: initial wavefront radius [m] to assume at wavefront propagation (is taken into account if != 0)
         :param _in_wre: initial wavefront radius error [m] to assume at wavefront propagation (is taken into account if != 0)
-        :param _mag_type: "type" of magnetic field to use: 
+        :param _mag_type: "type" of magnetic field to use:
+
             1- "Approximate", referenced by self.mag_approx; 
-            2- "Accurate" (tabulated), referenced by self.mag; 
+            2- "Accurate" (tabulated), referenced by self.mag;
+
         :param _n_part_tot: total number of "macro-electrons" to be used in the calculation
         :param _n_part_avg_proc: number of "macro-electrons" to be used in calculation at each "slave" before sending Stokes data to "master" (effective if the calculation is run via MPI)
         :param _n_save_per: periodicity of saving intermediate average Stokes data to file by master process
         :param _pres_ang: switch specifying presentation of the resulting Stokes parameters: coordinate (0) or angular (1)
         :param _char: radiation characteristic to calculate:
+
             0- Intensity (s0);
             1- Four Stokes components;
             2- Mutual Intensity Cut vs X;
             3- Mutual Intensity Cut vs Y;
             4- Mutual Intensity Cut vs X & Y
+
         :param _x0: horizontal center position for mutual intensity cut calculation
         :param _y0: vertical center position for mutual intensity cut calculation
         :param _e_ph_integ: integration over photon energy is required (1) or not (0); if the integration is required, the limits are taken from _mesh
         :param _rand_meth: method for generation of pseudo-random numbers for e-beam phase-space integration:
+
             1- standard pseudo-random number generator
             2- Halton sequences
             3- LPtau sequences (to be implemented)
+
         :param _fname: name of file to save the resulting data to
         :param _det: detector structure ensuring a given final mesh on which the calculated intensity (or other characteristic) will be interpolated
         :param _me_approx: multi-electron integration approximation method: 0- no approximation (use the standard 5D integration method), 1- integrate numerically only over e-beam energy spread and use convolution to treat transverse emittance
@@ -3560,11 +3599,13 @@ def srwl_uti_parse_str2list(_str):
 def srwl_uti_std_options():
     """Defines sets of standard default options (applicable to any beamline) for general types of calculation
     :returns: list providing compact description of all options; every element of this list is supposed to contain:
+
         [0]: string containing option (/ variable) name
         [1]: string containing type of the option / variable ('f' - float, 'i' - integer, 's' - string)
         [2]: default value
         [3]: string containing help / explanation of the option / variable
         [4]: optional string describing formal action to be taken if option is fired
+
     """
     varParamStd = [
 #---Electron Beam
@@ -3912,11 +3953,13 @@ def srwl_uti_std_options():
 def srwl_uti_merge_options(_arOpt1, _arOpt2):
     """Merge arrays of options specified in _arOpt1 and _arOpt2, eliminating duplicates
     :param _arOpt1: list providing compact description of options; every element of this list is supposed to contain:
+
         [0]: string containing option (/ variable) name
         [1]: string containing type of the option / variable ('f' - float, 'i' - integer, 's' - string)
         [2]: default value
         [3]: string containing help / explanation of the option / variable
         [4]: optional string describing formal action to be taken if option is fired
+
     :param _arOpt2: list providing compact description of extra options
     """
     nOpt1 = len(_arOpt1)
@@ -3944,6 +3987,7 @@ def srwl_uti_merge_options(_arOpt1, _arOpt2):
 def srwl_uti_ext_options(_arOpt):
     """Extend array of standard options with the options specified in _arOpt, eliminating duplicates
     :param _arOpt: list providing compact description of extra options; every element of this list is supposed to contain:
+
         [0]: string containing option (/ variable) name
         [1]: string containing type of the option / variable ('f' - float, 'i' - integer, 's' - string)
         [2]: default value
@@ -4011,11 +4055,13 @@ def srwl_uti_ext_options(_arOpt):
 def srwl_uti_parse_options_obs(_descr, use_sys_argv=True, args=None): #OC08032016 #MR26022016, MR04032016
     """Set and parse command-prompt options from a compact description provided in _descr using optparse (OBSOLETE: deprecated since Python 2.7).
     :param _descr: list providing compact description of all options; every element of this list is supposed to contain:
+
         [0]: string containing option (/ variable) name
         [1]: string containing type of the option / variable ('f' - float, 'i' - integer, 's' - string)
         [2]: default value
         [3]: string containing help / explanation of the option / variable
         [4]: optional string describing formal action to be taken if option is fired
+
     :param use_sys_argv: a flag which manages use of sys.argv values in optparse.
     :param args: arbitrary arguments to be parsed, used when use_sys_argv is set to False.
     """
@@ -4078,11 +4124,13 @@ def srwl_uti_parse_options_obs(_descr, use_sys_argv=True, args=None): #OC0803201
 def srwl_uti_parse_options(_descr, use_sys_argv=True, args=None): #OC08032016 #MR26022016, MR04032016
     """Set and parse command-prompt options from a compact description provided in _descr using argparse (recommended since Python 2.7).
     :param _descr: list providing compact description of all options; every element of this list is supposed to contain:
+
         [0]: string containing option (/ variable) name
         [1]: string containing type of the option / variable ('f' - float, 'i' - integer, 's' - string)
         [2]: default value
         [3]: string containing help / explanation of the option / variable
         [4]: optional string describing formal action to be taken if option is fired
+
     :param use_sys_argv: a flag which manages use of sys.argv values in argparse.
     :param args: arbitrary arguments to be parsed, used when use_sys_argv is set to False.
     """

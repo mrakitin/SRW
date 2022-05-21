@@ -31,6 +31,8 @@
 
 using namespace std;
 
+//From https://github.com/pypa/setuptools/issues/1248
+#define Py_LIMITED_API
 //Without the following Python.h will enforce usage of python**_d.lib in dbug mode, which may not be always existing
 //NOTE: to make it compilable with VC2013 (VC12), that blcock had to be moved down and placed after the previous includes
 #if defined(_DEBUG) 

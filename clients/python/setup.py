@@ -9,8 +9,8 @@ from setuptools.command.build_ext import build_ext
 
 
 class CMakeExtension(Extension):
-    def __init__(self, name, sourcedir='', package_name=''):
-        Extension.__init__(self, name, sources=[])
+    def __init__(self, name, sourcedir='', package_name='', **kwargs):
+        Extension.__init__(self, name, sources=[], **kwargs)
         self.sourcedir = os.path.abspath(sourcedir)
         self.package_name = package_name
 
@@ -94,6 +94,9 @@ This is SRW for Python.
       packages=find_packages(exclude=['docs', 'tests']),
       install_requires=requirements,
       zip_safe=False,
-      ext_modules=[CMakeExtension('srwlpy', original_src_dir, 'srwpy')],
+      ext_modules=[CMakeExtension('srwlpy', original_src_dir, 'srwpy',
+                                  py_limited_api=True,
+                                  define_macros=[('Py_LIMITED_API', '0x03060000')],
+                                  )],
       cmdclass=dict(build_ext=CMakeBuild),
       )

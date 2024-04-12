@@ -16,8 +16,8 @@ jobs:
     runs-on: ${{ matrix.host-os }}
     strategy:
       matrix:
-        host-os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        host-os: ["ubuntu-latest", "windows-latest", "macos-13", "macos-14"]
+        # python-version: ["3.8", "3.9", "3.10", "3.11"]
         openmp: ["off"]
       fail-fast: false
 
@@ -26,7 +26,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set OpenMP mode
         if: matrix.openmp == 'on'
@@ -34,90 +34,98 @@ jobs:
           export MODE="omp"
           echo "MODE=${MODE}" >> $GITHUB_ENV
 
-      - name: Set MacOS Deployment Target
-        if: runner.os == 'macOS'
-        run: |
-          export MACOSX_DEPLOYMENT_TARGET="10.15"
-          echo "MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET}" >> $GITHUB_ENV
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.17.0
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/upload-artifact@v4
         with:
-          activate-environment: testenv
-          allow-softlinks: true
-          auto-activate-base: false
-          auto-update-conda: true
-          channel-priority: flexible
-          channels: conda-forge
-          miniconda-version: "latest"
-          python-version: ${{ matrix.python-version }}
-          show-channel-urls: true
-          use-only-tar-bz2: false
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
 
-      - name: Set up Visual Studio shell
-        if: runner.os == 'Windows'
-        uses: egor-tensin/vs-shell@v2
-        with:
-          arch: x64
+      # - name: Set MacOS Deployment Target
+      #   if: runner.os == 'macOS'
+      #   run: |
+      #     export MACOSX_DEPLOYMENT_TARGET="10.15"
+      #     echo "MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET}" >> $GITHUB_ENV
 
-      - name: Install build requirements with conda
-        if: runner.os != 'Linux'
-        run: |
-          set -vxeuo pipefail
-          conda install -y cmake
+      # - uses: conda-incubator/setup-miniconda@v2
+      #   with:
+      #     activate-environment: testenv
+      #     allow-softlinks: true
+      #     auto-activate-base: false
+      #     auto-update-conda: true
+      #     channel-priority: flexible
+      #     channels: conda-forge
+      #     miniconda-version: "latest"
+      #     python-version: ${{ matrix.python-version }}
+      #     show-channel-urls: true
+      #     use-only-tar-bz2: false
 
-      - name: Install OpenMP for macOS with conda
-        if: runner.os == 'macOS' && matrix.openmp == 'on'
-        run: |
-          set -vxeuo pipefail
-          conda install -y -c conda-forge llvm-openmp
+      # - name: Set up Visual Studio shell
+      #   if: runner.os == 'Windows'
+      #   uses: egor-tensin/vs-shell@v2
+      #   with:
+      #     arch: x64
 
-      # NOTE: This step is not needed for fast tests.
-      # - name: Install mpi4py for Unix with conda
-      #   if: runner.os != 'Windows'
+      # - name: Install build requirements with conda
+      #   if: runner.os != 'Linux'
       #   run: |
       #     set -vxeuo pipefail
-      #     conda install -y -c conda-forge mpi4py openmpi
+      #     conda install -y cmake
 
-      - name: Install cibuildwheel on Linux
-        if: runner.os == 'Linux'
-        run: |
-          set -vxeuo pipefail
-          python -m pip install --upgrade pip
-          python -m pip install cibuildwheel
-          echo "CIBW_BEFORE_ALL=pip install cmake" >> $GITHUB_ENV
-          PYTH_VER=${{ matrix.python-version }}
-          PYTH_VER=${PYTH_VER//.}
-          echo "CIBW_BUILD="cp$PYTH_VER-manylinux*"" >> $GITHUB_ENV
+      # - name: Install OpenMP for macOS with conda
+      #   if: runner.os == 'macOS' && matrix.openmp == 'on'
+      #   run: |
+      #     set -vxeuo pipefail
+      #     conda install -y -c conda-forge llvm-openmp
 
-      - name: Build wheel on Linux
-        if: runner.os == 'Linux'
-        run: |
-          set -vxeuo pipefail
-          python -VV
-          python -m cibuildwheel --output-dir dist env/python
-          ls -la dist/*
+      # # NOTE: This step is not needed for fast tests.
+      # # - name: Install mpi4py for Unix with conda
+      # #   if: runner.os != 'Windows'
+      # #   run: |
+      # #     set -vxeuo pipefail
+      # #     conda install -y -c conda-forge mpi4py openmpi
 
-      - name: Build wheel on Windows/Mac
-        if: runner.os != 'Linux'
-        run: |
-          set -vxeuo pipefail
-          cd env/python
-          python -VV
-          python setup.py bdist_wheel
-          ls -la dist/*
-          mkdir -p ../../dist
-          cp dist/*.whl ../../dist/
+      # - name: Install cibuildwheel on Linux
+      #   if: runner.os == 'Linux'
+      #   run: |
+      #     set -vxeuo pipefail
+      #     python -m pip install --upgrade pip
+      #     python -m pip install cibuildwheel
+      #     echo "CIBW_BEFORE_ALL=pip install cmake" >> $GITHUB_ENV
+      #     PYTH_VER=${{ matrix.python-version }}
+      #     PYTH_VER=${PYTH_VER//.}
+      #     echo "CIBW_BUILD="cp$PYTH_VER-manylinux*"" >> $GITHUB_ENV
 
-      - name: Publish wheels to GitHub artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: wheels
-          path: dist/*
+      # - name: Build wheel on Linux
+      #   if: runner.os == 'Linux'
+      #   run: |
+      #     set -vxeuo pipefail
+      #     python -VV
+      #     python -m cibuildwheel --output-dir dist env/python
+      #     ls -la dist/*
+
+      # - name: Build wheel on Windows/Mac
+      #   if: runner.os != 'Linux'
+      #   run: |
+      #     set -vxeuo pipefail
+      #     cd env/python
+      #     python -VV
+      #     python setup.py bdist_wheel
+      #     ls -la dist/*
+      #     mkdir -p ../../dist
+      #     cp dist/*.whl ../../dist/
+
+      # - name: Publish wheels to GitHub artifacts
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: wheels
+      #     path: dist/*
 
       - name: Install the package and test requirements
         run: |
           set -vxeuo pipefail
-          pip install -v dist/*64.whl
+          pip install -v wheelhouse/*.whl
 
           # Smoke import test:
           python -c "import srwpy; import srwpy.srwlpy"

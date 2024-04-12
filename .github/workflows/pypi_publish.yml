@@ -43,7 +43,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          name: cibw-wheels-${{ matrix.host-os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 
       # - name: Set MacOS Deployment Target
@@ -52,18 +52,18 @@ jobs:
       #     export MACOSX_DEPLOYMENT_TARGET="10.15"
       #     echo "MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET}" >> $GITHUB_ENV
 
-      # - uses: conda-incubator/setup-miniconda@v2
-      #   with:
-      #     activate-environment: testenv
-      #     allow-softlinks: true
-      #     auto-activate-base: false
-      #     auto-update-conda: true
-      #     channel-priority: flexible
-      #     channels: conda-forge
-      #     miniconda-version: "latest"
-      #     python-version: ${{ matrix.python-version }}
-      #     show-channel-urls: true
-      #     use-only-tar-bz2: false
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: testenv
+          allow-softlinks: true
+          auto-activate-base: false
+          auto-update-conda: true
+          channel-priority: flexible
+          channels: conda-forge
+          miniconda-version: "latest"
+          python-version: "3.10"
+          show-channel-urls: true
+          use-only-tar-bz2: false
 
       # - name: Set up Visual Studio shell
       #   if: runner.os == 'Windows'
@@ -129,7 +129,7 @@ jobs:
       - name: Install the package and test requirements
         run: |
           set -vxeuo pipefail
-          pip install -v wheelhouse/*.whl
+          pip install -v wheelhouse/*-cp310-*.whl
 
           # Smoke import test:
           python -c "import srwpy; import srwpy.srwlpy"

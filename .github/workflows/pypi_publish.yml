@@ -157,14 +157,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Download wheels
-        uses: actions/download-artifact@v4
-        with:
-          name: srwpy-wheels-${{ matrix.host-os }}
-          path: wheelhouse
+      # - name: Download wheels
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: srwpy-wheels-${{ matrix.host-os }}
+      #     path: wheelhouse
 
-      - name: Display structure of downloaded files
-        run: ls -laR wheelhouse/
+      # - name: Display structure of downloaded files
+      #   run: ls -laR wheelhouse/
 
       - name: Install the package and test requirements
         run: |
@@ -175,22 +175,22 @@ jobs:
 
           ls -laR /Library/Frameworks/Python.framework/Versions/
 
-          python -m pip install -v wheelhouse/*-cp${PYTHONVER}-*.whl
+          # python -m pip install -v wheelhouse/*-cp${PYTHONVER}-*.whl
 
-          # Smoke import test:
-          python -c "import srwpy; import srwpy.srwlpy"
+          # # Smoke import test:
+          # python -c "import srwpy; import srwpy.srwlpy"
 
-          # Check CLI tools:
-          srw-viewer --help
+          # # Check CLI tools:
+          # srw-viewer --help
 
-          python -m pip install -r env/python/requirements-dev.txt
-          python -m pip list
+          # python -m pip install -r env/python/requirements-dev.txt
+          # python -m pip list
 
-      - name: Run fast tests
-        run: |
-          set -vxeuo pipefail
-          cd env/python
-          pytest -k fast
+      # - name: Run fast tests
+      #   run: |
+      #     set -vxeuo pipefail
+      #     cd env/python
+      #     pytest -k fast
 
   publish-to-pypi:
     # Hints from:

@@ -12,12 +12,12 @@ jobs:
     # pull requests are a duplicate of a branch push if within the same repo.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
 
-    name: ${{ matrix.host-os }} / Python ${{ matrix.python-version }} / OpenMP ${{ matrix.openmp }}
+    name: ${{ matrix.host-os }} / OpenMP ${{ matrix.openmp }}
     runs-on: ${{ matrix.host-os }}
     strategy:
       matrix:
         host-os: ["ubuntu-latest", "windows-latest", "macos-13", "macos-14"]
-        # python-version: ["3.8", "3.9", "3.10", "3.11"]
+        # python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         openmp: ["off"]
       fail-fast: false
     env:
@@ -43,7 +43,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-${{ matrix.host-os }}-${{ strategy.job-index }}
+          name: srwpy-wheels-${{ matrix.host-os }}
           path: ./wheelhouse/*.whl
 
       # - name: Set MacOS Deployment Target
@@ -52,18 +52,18 @@ jobs:
       #     export MACOSX_DEPLOYMENT_TARGET="10.15"
       #     echo "MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET}" >> $GITHUB_ENV
 
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: testenv
-          allow-softlinks: true
-          auto-activate-base: false
-          auto-update-conda: true
-          channel-priority: flexible
-          channels: conda-forge
-          miniconda-version: "latest"
-          python-version: "3.10"
-          show-channel-urls: true
-          use-only-tar-bz2: false
+      # - uses: conda-incubator/setup-miniconda@v2
+      #   with:
+      #     activate-environment: testenv
+      #     allow-softlinks: true
+      #     auto-activate-base: false
+      #     auto-update-conda: true
+      #     channel-priority: flexible
+      #     channels: conda-forge
+      #     miniconda-version: "latest"
+      #     python-version: "3.10"
+      #     show-channel-urls: true
+      #     use-only-tar-bz2: false
 
       # - name: Set up Visual Studio shell
       #   if: runner.os == 'Windows'
@@ -126,10 +126,46 @@ jobs:
       #     name: wheels
       #     path: dist/*
 
+  test-wheels:
+    # pull requests are a duplicate of a branch push if within the same repo.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+
+    name: ${{ matrix.host-os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.host-os }}
+    strategy:
+      matrix:
+        host-os: ["ubuntu-latest", "windows-latest", "macos-13", "macos-14"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+      fail-fast: false
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - name: Set environment variables
+        run: |
+          export PYTHONVER=$(echo ${{ matrix.python-version }} | sed 's/\.//g')
+          echo "PYTHONVER=${PYTHONVER}" >> $GITHUB_ENV
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Download wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: srwpy-wheels-${{ matrix.host-os }}
+          path: wheelhouse
+
+      - name: Display structure of downloaded files
+        run: ls -laR wheelhouse/
+
       - name: Install the package and test requirements
         run: |
           set -vxeuo pipefail
-          pip install -v wheelhouse/*-cp310-*.whl
+          pip install -v wheelhouse/*-cp${PYTHONVER}-*.whl
 
           # Smoke import test:
           python -c "import srwpy; import srwpy.srwlpy"

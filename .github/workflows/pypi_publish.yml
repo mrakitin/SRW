@@ -170,10 +170,8 @@ jobs:
         run: |
           set -vxeuo pipefail
 
-          which python
-          python -VV
-
-          ls -laR /Library/Frameworks/Python.framework/Versions/
+          which python${PYTHONVER}
+          python${PYTHONVER} -VV
 
           # python -m pip install -v wheelhouse/*-cp${PYTHONVER}-*.whl
 

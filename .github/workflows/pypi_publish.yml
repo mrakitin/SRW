@@ -8,44 +8,44 @@ on:
   workflow_dispatch:
 
 jobs:
-  # build-wheels:
-  #   # pull requests are a duplicate of a branch push if within the same repo.
-  #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+  build-wheels:
+    # pull requests are a duplicate of a branch push if within the same repo.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
 
-  #   name: ${{ matrix.host-os }} / OpenMP ${{ matrix.openmp }}
-  #   runs-on: ${{ matrix.host-os }}
-  #   strategy:
-  #     matrix:
-  #       # host-os: ["ubuntu-latest", "windows-latest", "macos-13", "macos-14"]
-  #       host-os: ["ubuntu-latest", "macos-13", "macos-14"]
-  #       # python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-  #       openmp: ["off"]
-  #     fail-fast: false
-  #   env:
-  #     CIBW_SKIP: pp* cp36-* cp37-* cp*_i686 cp*-musllinux_*
+    name: ${{ matrix.host-os }} / OpenMP ${{ matrix.openmp }}
+    runs-on: ${{ matrix.host-os }}
+    strategy:
+      matrix:
+        # host-os: ["ubuntu-latest", "windows-latest", "macos-13", "macos-14"]
+        host-os: ["ubuntu-latest", "macos-13", "macos-14"]
+        # python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        openmp: ["off"]
+      fail-fast: false
+    env:
+      CIBW_SKIP: pp* cp36-* cp37-* cp*_i686 cp*-musllinux_*
 
-  #   defaults:
-  #     run:
-  #       shell: bash -l {0}
+    defaults:
+      run:
+        shell: bash -l {0}
 
-  #   steps:
-  #     - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Set OpenMP mode
-  #       if: matrix.openmp == 'on'
-  #       run: |
-  #         export MODE="omp"
-  #         echo "MODE=${MODE}" >> $GITHUB_ENV
+      - name: Set OpenMP mode
+        if: matrix.openmp == 'on'
+        run: |
+          export MODE="omp"
+          echo "MODE=${MODE}" >> $GITHUB_ENV
 
-  #     - name: Build wheels
-  #       uses: pypa/cibuildwheel@v2.17.0
-  #       with:
-  #         package-dir: "env/python"
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.17.0
+        with:
+          package-dir: "env/python"
 
-  #     - uses: actions/upload-artifact@v4
-  #       with:
-  #         name: srwpy-wheels-${{ matrix.host-os }}
-  #         path: ./wheelhouse/*.whl
+      - uses: actions/upload-artifact@v4
+        with:
+          name: srwpy-wheels-${{ matrix.host-os }}
+          path: ./wheelhouse/*.whl
 
       # TODO: add sdist generation/uploading step
 
@@ -152,38 +152,26 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      # - uses: conda-incubator/setup-miniconda@v2
-      #   with:
-      #     activate-environment: testenv
-      #     allow-softlinks: true
-      #     auto-activate-base: false
-      #     auto-update-conda: true
-      #     channel-priority: flexible
-      #     channels: conda-forge
-      #     miniconda-version: "latest"
-      #     python-version: "${{ matrix.python-version }}"
-      #     show-channel-urls: true
-      #     use-only-tar-bz2: false
-
       - uses: mamba-org/setup-micromamba@v1
         with:
           environment-name: test-env
           create-args: >-
             python=${{ matrix.python-version }}
 
+      # NOTE: this does not properly make the installed python version active, so fails on MacOS runners.
       # - name: Install Python
       #   uses: actions/setup-python@v5
       #   with:
       #     python-version: ${{ matrix.python-version }}
 
-      # - name: Download wheels
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: srwpy-wheels-${{ matrix.host-os }}
-      #     path: wheelhouse
+      - name: Download wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: srwpy-wheels-${{ matrix.host-os }}
+          path: wheelhouse
 
-      # - name: Display structure of downloaded files
-      #   run: ls -laR wheelhouse/
+      - name: Display structure of downloaded files
+        run: ls -laR wheelhouse/
 
       - name: Install the package and test requirements
         run: |
@@ -192,22 +180,22 @@ jobs:
           which python
           python -VV
 
-          # python -m pip install -v wheelhouse/*-cp${PYTHONVER}-*.whl
+          python -m pip install -v wheelhouse/*-cp${PYTHONVER}-*.whl
 
-          # # Smoke import test:
-          # python -c "import srwpy; import srwpy.srwlpy"
+          # Smoke import test:
+          python -c "import srwpy; import srwpy.srwlpy"
 
-          # # Check CLI tools:
-          # srw-viewer --help
+          # Check CLI tools:
+          srw-viewer --help
 
-          # python -m pip install -r env/python/requirements-dev.txt
-          # python -m pip list
+          python -m pip install -r env/python/requirements-dev.txt
+          python -m pip list
 
-      # - name: Run fast tests
-      #   run: |
-      #     set -vxeuo pipefail
-      #     cd env/python
-      #     pytest -k fast
+      - name: Run fast tests
+        run: |
+          set -vxeuo pipefail
+          cd env/python
+          pytest -k fast
 
   publish-to-pypi:
     # Hints from:

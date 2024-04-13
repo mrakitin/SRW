@@ -150,6 +150,8 @@ jobs:
           export PYTHONVER=$(echo ${{ matrix.python-version }} | sed 's/\.//g')
           echo "PYTHONVER=${PYTHONVER}" >> $GITHUB_ENV
 
+      - uses: actions/checkout@v4
+
       - name: Install Python
         uses: actions/setup-python@v5
         with:

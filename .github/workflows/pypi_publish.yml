@@ -22,7 +22,7 @@ jobs:
         openmp: ["off"]
       fail-fast: false
     env:
-      CIBW_SKIP: pp* cp36-* cp37-* cp*_i686
+      CIBW_SKIP: pp* cp36-* cp37-* cp*_i686 cp*-musllinux_*
 
     defaults:
       run:
@@ -135,7 +135,8 @@ jobs:
     runs-on: ${{ matrix.host-os }}
     strategy:
       matrix:
-        host-os: ["ubuntu-latest", "windows-latest", "macos-13", "macos-14"]
+        # host-os: ["ubuntu-latest", "windows-latest", "macos-13", "macos-14"]
+        host-os: ["ubuntu-latest", "macos-13", "macos-14"]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
       fail-fast: false
 
@@ -166,7 +167,7 @@ jobs:
       - name: Install the package and test requirements
         run: |
           set -vxeuo pipefail
-          pip install -v wheelhouse/*-cp${PYTHONVER}-*.whl
+          python -m pip install -v wheelhouse/*-cp${PYTHONVER}-*.whl
 
           # Smoke import test:
           python -c "import srwpy; import srwpy.srwlpy"

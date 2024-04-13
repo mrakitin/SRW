@@ -8,44 +8,44 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-wheels:
-    # pull requests are a duplicate of a branch push if within the same repo.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+  # build-wheels:
+  #   # pull requests are a duplicate of a branch push if within the same repo.
+  #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
 
-    name: ${{ matrix.host-os }} / OpenMP ${{ matrix.openmp }}
-    runs-on: ${{ matrix.host-os }}
-    strategy:
-      matrix:
-        # host-os: ["ubuntu-latest", "windows-latest", "macos-13", "macos-14"]
-        host-os: ["ubuntu-latest", "macos-13", "macos-14"]
-        # python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        openmp: ["off"]
-      fail-fast: false
-    env:
-      CIBW_SKIP: pp* cp36-* cp37-* cp*_i686 cp*-musllinux_*
+  #   name: ${{ matrix.host-os }} / OpenMP ${{ matrix.openmp }}
+  #   runs-on: ${{ matrix.host-os }}
+  #   strategy:
+  #     matrix:
+  #       # host-os: ["ubuntu-latest", "windows-latest", "macos-13", "macos-14"]
+  #       host-os: ["ubuntu-latest", "macos-13", "macos-14"]
+  #       # python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+  #       openmp: ["off"]
+  #     fail-fast: false
+  #   env:
+  #     CIBW_SKIP: pp* cp36-* cp37-* cp*_i686 cp*-musllinux_*
 
-    defaults:
-      run:
-        shell: bash -l {0}
+  #   defaults:
+  #     run:
+  #       shell: bash -l {0}
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Set OpenMP mode
-        if: matrix.openmp == 'on'
-        run: |
-          export MODE="omp"
-          echo "MODE=${MODE}" >> $GITHUB_ENV
+  #     - name: Set OpenMP mode
+  #       if: matrix.openmp == 'on'
+  #       run: |
+  #         export MODE="omp"
+  #         echo "MODE=${MODE}" >> $GITHUB_ENV
 
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.17.0
-        with:
-          package-dir: "env/python"
+  #     - name: Build wheels
+  #       uses: pypa/cibuildwheel@v2.17.0
+  #       with:
+  #         package-dir: "env/python"
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: srwpy-wheels-${{ matrix.host-os }}
-          path: ./wheelhouse/*.whl
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         name: srwpy-wheels-${{ matrix.host-os }}
+  #         path: ./wheelhouse/*.whl
 
       # TODO: add sdist generation/uploading step
 
@@ -130,7 +130,7 @@ jobs:
       #     path: dist/*
 
   test-wheels:
-    needs: build-wheels
+    # needs: build-wheels
     name: ${{ matrix.host-os }} / Python ${{ matrix.python-version }}
     runs-on: ${{ matrix.host-os }}
     strategy:
@@ -169,6 +169,12 @@ jobs:
       - name: Install the package and test requirements
         run: |
           set -vxeuo pipefail
+
+          which python
+          python -VV
+
+          ls -laR /Library/Frameworks/Python.framework/Versions/
+
           python -m pip install -v wheelhouse/*-cp${PYTHONVER}-*.whl
 
           # Smoke import test:

@@ -130,7 +130,7 @@ jobs:
       #     path: dist/*
 
   test-wheels:
-    # needs: build-wheels
+    needs: build-wheels
     name: ${{ matrix.host-os }} / Python ${{ matrix.python-version }}
     runs-on: ${{ matrix.host-os }}
     strategy:

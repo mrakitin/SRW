@@ -22,7 +22,7 @@ jobs:
         openmp: ["off"]
       fail-fast: false
     env:
-      CIBW_SKIP: pp* cp36-* cp37-*
+      CIBW_SKIP: pp* cp36-* cp37-* cp*_i686
 
     defaults:
       run:

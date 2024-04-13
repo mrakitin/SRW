@@ -189,8 +189,8 @@ jobs:
         run: |
           set -vxeuo pipefail
 
-          which python${PYTHONVER}
-          python${PYTHONVER} -VV
+          which python
+          python -VV
 
           # python -m pip install -v wheelhouse/*-cp${PYTHONVER}-*.whl
 

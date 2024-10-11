@@ -39,17 +39,17 @@ jobs:
           export MODE="omp"
           echo "MODE=${MODE}" >> $GITHUB_ENV
 
-      # - name: Set up Visual Studio shell
-      #   if: runner.os == 'Windows'
-      #   uses: egor-tensin/vs-shell@v2
-      #   with:
-      #     arch: x64
-
-      - name: Add msbuild to PATH
+      - name: Set up Visual Studio shell
         if: runner.os == 'Windows'
-        uses: microsoft/setup-msbuild@v2
+        uses: egor-tensin/vs-shell@v2
         with:
-          msbuild-architecture: "x64"
+          arch: x64
+
+      # - name: Add msbuild to PATH
+      #   if: runner.os == 'Windows'
+      #   uses: microsoft/setup-msbuild@v2
+      #   with:
+      #     msbuild-architecture: "x64"
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.17.0
